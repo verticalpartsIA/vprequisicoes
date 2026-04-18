@@ -10,6 +10,7 @@ import { productRequestSchema, ProductRequestInput } from '@/lib/validation/sche
 import { mockApiClient } from '@/lib/api/client.mock';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from '@/components/ui/card';
 import { Toast, ToastType } from '@/components/ui/toast';
 import { ProductItemCard } from './ProductItemCard';
@@ -93,6 +94,7 @@ export const ProductRequestForm = () => {
                 <Input 
                   label="Nome do Solicitante" 
                   placeholder="Ex: João da Silva"
+                  tooltip="Nome completo do colaborador que está solicitando o material"
                   required
                   {...register('solicitante')} 
                   error={errors.solicitante?.message}
@@ -100,6 +102,7 @@ export const ProductRequestForm = () => {
                 <Input 
                   label="Departamento / Centro" 
                   placeholder="Ex: Manutenção / Infra"
+                  tooltip="Seto ou Centro de Custo responsável pela despesa"
                   {...register('departamento')} 
                   error={errors.departamento?.message}
                 />
@@ -144,15 +147,14 @@ export const ProductRequestForm = () => {
                 <span>Justificativa da Compra</span>
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium text-slate-300">
-                  Motivo da solicitação (Mínimo de 10 caracteres) <span className="text-red-500">*</span>
-                </label>
-                <textarea 
-                  className={`flex min-h-[120px] w-full rounded-md border ${errors.justificativa ? 'border-red-500' : 'border-surface-border'} bg-surface-card px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand`}
+                <Textarea 
+                  label="Justificativa da Compra"
                   placeholder="Descreva o propósito da compra..."
+                  tooltip="Explique detalhadamente a necessidade do material. Mínimo 10 caracteres."
+                  required
                   {...register('justificativa')}
+                  error={errors.justificativa?.message}
                 />
-                {errors.justificativa && <p className="text-xs text-red-500 font-medium">{errors.justificativa.message}</p>}
               </div>
             </section>
           </CardContent>
@@ -167,7 +169,7 @@ export const ProductRequestForm = () => {
               className="w-full sm:w-auto px-8 py-6 text-lg shadow-xl shadow-brand/20"
             >
               <Send className="w-5 h-5 mr-3" />
-              Enviar para Aprovação
+              Enviar para Cotação
             </Button>
           </CardFooter>
         </form>
