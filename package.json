@@ -14,6 +14,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest run --coverage",
     "test:M1": "vitest run --dir packages/modules/M1-products/__tests__",
+    "test:m5": "vitest run --dir packages/modules/M5-freight/__tests__",
     "test:approval": "vitest run --dir packages/modules/approval/__tests__",
     "test:integration": "vitest run --config vitest.integration.config.ts",
     "test:workflow": "vitest run --dir packages/core/workflow/__tests__",
@@ -53,6 +54,7 @@
     "tailwindcss": "^3.4.1",
     "typescript": "^5.3.3",
     "vitest": "^1.2.0",
-    "@playwright/test": "^1.44.0"
+    "@playwright/test": "^1.44.0",
+    "@testing-library/react": "^16.2.0"
   }
 }
