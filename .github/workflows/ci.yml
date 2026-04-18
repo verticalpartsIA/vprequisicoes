@@ -52,7 +52,7 @@ jobs:
         run: npm run build
 
       - name: Run E2E Tests
-        run: ./node_modules/.bin/playwright test
+        run: npm run test:e2e
         env:
           DATABASE_URL: file:./dev.db
           CI: true
