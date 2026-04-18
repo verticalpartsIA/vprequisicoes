@@ -9,7 +9,7 @@ export const adaptFreightToApprovalView = (request: FreightRequest) => {
   return {
     module_badge: 'FRETE',
     title: 'Serviço de Transporte de Carga',
-    status_summary: `Cotado: R$ ${request.quotation.price.toLocaleString('pt-BR')}`,
+    approver_summary: `${request.direction === 'inbound' ? 'Trazer PARA' : 'Levar DA'} VerticalParts ${request.direction === 'inbound' ? 'DE' : 'PARA'} ${request.direction === 'inbound' ? request.origin : request.destination} | ${request.cargo_type} | ${request.quotation.carrier} | R$ ${request.quotation.price.toLocaleString('pt-BR')}`,
     comparison: {
       from: request.origin,
       to: request.destination,
