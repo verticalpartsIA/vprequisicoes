@@ -17,6 +17,18 @@ export const createMockTicket = (overrides?: Partial<Ticket>): Ticket => ({
   ...overrides,
 });
 
+export const createMockProductRequest = (overrides?: any) => ({
+  solicitante: 'Gelson Filho',
+  departamento: 'TI',
+  centroCusto: 'CC-001',
+  justificativa: 'Necessidade de novos equipamentos para o time.',
+  itens: [
+    { nome: 'Notebook Dell Latitude', quantidade: 2 },
+    { nome: 'Monitor UltraSharp 27', quantidade: 2 }
+  ],
+  ...overrides,
+});
+
 export const createMockSupplierOffer = (overrides?: Partial<SupplierOffer>): SupplierOffer => ({
   id: 'off-1',
   name: 'Fornecedor A',
