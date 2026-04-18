@@ -46,7 +46,7 @@ describe('Quotation → Approval Integration', () => {
   });
 
   it('deve aprovar cotação válida', async () => {
-    const decision = { decision: 'approve', justification: 'Preço dentro da alçada.' };
+    const decision = { decision: 'approve' };
     const parsed = approvalDecisionSchema.safeParse(decision);
     expect(parsed.success).toBe(true);
 
@@ -55,7 +55,7 @@ describe('Quotation → Approval Integration', () => {
   });
 
   it('deve rejeitar cotação com motivo', async () => {
-    const decision = { decision: 'reject', justification: 'Fornecedor sem histórico aprovado.' };
+    const decision = { decision: 'reject', reason: 'Fornecedor sem histórico aprovado pela área.' };
     const parsed = approvalDecisionSchema.safeParse(decision);
     expect(parsed.success).toBe(true);
 

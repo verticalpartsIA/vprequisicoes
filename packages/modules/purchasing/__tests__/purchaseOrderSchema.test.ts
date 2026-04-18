@@ -3,10 +3,10 @@ import { purchaseOrderSchema } from '@/lib/validation/schemas';
 
 describe('purchaseOrderSchema (Purchasing)', () => {
   const baseItem = {
-    product_name: 'Parafuso M8',
+    description: 'Parafuso M8',
     quantity: 100,
     unit_price: 1.10,
-    total_price: 110,
+    subtotal: 110,
   };
 
   const base = {

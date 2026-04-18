@@ -6,18 +6,29 @@ export const loginSchema = z.object({
 });
 
 export const productItemSchema = z.object({
-  nome: z.string().min(2, "Nome do produto é obrigatório"),
-  quantidade: z.number().min(1, "Quantidade deve ser maior que 0"),
+  nome: z.string({
+    required_error: "Nome do produto é obrigatório",
+    invalid_type_error: "Nome do produto deve ser texto",
+  }).min(1, "Nome do produto é obrigatório"),
+  quantidade: z.number({
+    required_error: "Quantidade é obrigatória",
+    invalid_type_error: "Quantidade deve ser um número",
+  }).min(1, "Quantidade deve ser maior que 0"),
   especificacao: z.string().optional(),
 });
 
 export const productRequestSchema = z.object({
-  solicitante: z.string().min(1, "Solicitante é obrigatório"),
-  justificativa: z.string().min(10, "A justificativa deve ter no mínimo de 10 caracteres"),
-  itens: z.array(productItemSchema).min(1, "Adicione pelo menos um produto"),
-  // Campos técnicos mantidos ou absorvidos
-  departamento: z.string().optional(),
-  centroCusto: z.string().optional(),
+  solicitante: z.string({
+    required_error: "Solicitante é obrigatório",
+  }).min(1, "Solicitante é obrigatório"),
+  justificativa: z.string({
+    required_error: "Justificativa é obrigatória",
+  }).min(10, "A justificativa deve ter no mínimo de 10 caracteres"),
+  itens: z.array(productItemSchema, {
+    required_error: "Adicione pelo menos um produto",
+  }).min(1, "Adicione pelo menos um produto"),
+  departamento: z.string().optional().or(z.literal('')),
+  centroCusto: z.string().optional().or(z.literal('')),
 });
 
 export type ProductRequestInput = z.infer<typeof productRequestSchema>;
@@ -144,7 +155,13 @@ export const travelRequestSchema = z.object({
   needs_destination_car: z.boolean().default(false),
   pickup_location: z.string().optional(),
   rental_days: z.number().optional(),
-  urgency_justification: z.string().optional()
+  urgency_justification: z.string().optional(),
+  
+  // International Expansion
+  passport_number: z.string().optional(),
+  visa_required: z.boolean().default(false),
+  travel_insurance: z.boolean().default(false),
+  destination_country: z.string().optional()
 }).superRefine((data, ctx) => {
   const dep = new Date(data.departure_date);
   const ret = new Date(data.return_date);
@@ -167,6 +184,31 @@ export const travelRequestSchema = z.object({
       message: "Viagens com menos de 5 dias de antecedência exigem justificativa detalhada (mín 20 carac.)",
       path: ["urgency_justification"]
     });
+  }
+
+  // Validação Internacional
+  if (data.is_international) {
+    if (!data.destination_country || data.destination_country.length < 2) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "País de destino é obrigatório para viagens internacionais",
+        path: ["destination_country"]
+      });
+    }
+    if (!data.passport_number || !/^[A-Z0-9]{9}$/i.test(data.passport_number)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Passaporte válido (9 caracteres alfanuméricos) é obrigatório",
+        path: ["passport_number"]
+      });
+    }
+    if (!data.travel_insurance) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Seguro viagem é obrigatório para viagens internacionais",
+        path: ["travel_insurance"]
+      });
+    }
   }
 });
 
@@ -242,7 +284,12 @@ export const maintenanceRequestSchema = z.object({
   contract_provider: z.string().optional(),
   contract_valid_until: z.string().optional(),
   estimated_value: z.number().positive("Valor deve ser positivo").optional(),
-  recurrence: z.enum(['one_time', 'monthly', 'quarterly', 'annual']).default('one_time')
+  recurrence: z.enum(['one_time', 'monthly', 'quarterly', 'annual']).default('one_time'),
+  
+  // Recurring Expansion
+  contract_frequency: z.enum(['monthly', 'quarterly', 'annual']).optional(),
+  next_due_date: z.string().optional(),
+  auto_renew: z.boolean().default(false)
 }).superRefine((data, ctx) => {
   // Se NÃO coberto por contrato, valor estimado é obrigatório para cotação
   if (!data.covered_by_contract && (!data.estimated_value || data.estimated_value <= 0)) {
@@ -251,6 +298,30 @@ export const maintenanceRequestSchema = z.object({
       message: "Valor estimado é obrigatório quando não há contrato vigente",
       path: ["estimated_value"]
     });
+  }
+
+  // Validação de Contrato Recorrente
+  if (data.covered_by_contract) {
+    if (!data.contract_number) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Número do contrato é obrigatório",
+        path: ["contract_number"]
+      });
+    }
+    if (!data.next_due_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Data do próximo vencimento é obrigatória",
+        path: ["next_due_date"]
+      });
+    } else if (new Date(data.next_due_date) <= new Date()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Próximo vencimento deve ser uma data futura",
+        path: ["next_due_date"]
+      });
+    }
   }
 
   // Se FOR emergência corretiva, descrição longa é obrigatória
@@ -286,4 +357,88 @@ export const freightRequestSchema = z.object({
 
 export type FreightRequestInput = z.infer<typeof freightRequestSchema>;
 
+// --- M5 INTEGRAÇÕES ---
 
+export const freightQuotationSchema = z.object({
+  carrier: z.string().min(2, "Transportadora obrigatória"),
+  price: z.number().positive("Valor deve ser positivo"),
+  estimated_delivery_days: z.number().int().min(1, "Prazo mínimo 1 dia"),
+  tracking_code: z.string().optional()
+});
+
+export const freightAttestationSchema = z.object({
+  pickup_confirmed: z.boolean().refine(val => val === true, "Confirme a coleta"),
+  delivery_confirmed: z.boolean().refine(val => val === true, "Confirme a entrega"),
+  actual_delivery_date: z.string().min(1, "Data de entrega obrigatória"),
+  notes: z.string().optional()
+});
+
+export type FreightQuotationInput = z.infer<typeof freightQuotationSchema>;
+export type FreightAttestationInput = z.infer<typeof freightAttestationSchema>;
+
+// --- Módulo de Recebimento (Receiving) ---
+
+export const physicalReceivedItemSchema = z.object({
+  purchase_order_item_id: z.string(),
+  description: z.string(),
+  quantity_purchased: z.number(),
+  quantity_received: z.number().min(0, "Quantidade não pode ser negativa"),
+  condition: z.enum(['ok', 'damaged', 'missing']),
+  divergence_reason: z.string().optional()
+});
+
+export const receivingSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("physical"),
+    received_by: z.string().min(3, "Identificação do recebedor obrigatória"),
+    notes: z.string().optional(),
+    items: z.array(physicalReceivedItemSchema).min(1, "Identifique os itens recebidos")
+  }),
+  z.object({
+    type: z.literal("digital"),
+    received_by: z.string().min(3, "Identificação obrigatória"),
+    execution_confirmed: z.boolean().refine(val => val === true, "Você deve confirmar a execução para liberar"),
+    notes: z.string().min(10, "Atestado exige uma breve descrição da execução")
+  })
+]);
+
+export type ReceivingInput = z.infer<typeof receivingSchema>;
+
+// --- Módulo de Equipamentos (M6) ---
+
+export const equipmentReturnSchema = z.object({
+  condition_on_return: z.enum(['ok', 'damaged', 'lost']),
+  late_return_days: z.number().min(0, "Dias de atraso não podem ser negativos").default(0),
+  damage_notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if ((data.condition_on_return === 'damaged' || data.condition_on_return === 'lost') && (!data.damage_notes || data.damage_notes.length < 10)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Notas de dano/perda são obrigatórias (mín 10 carac.)",
+      path: ["damage_notes"]
+    });
+  }
+});
+
+export type EquipmentReturnInput = z.infer<typeof equipmentReturnSchema>;
+
+
+
+
+// --- Módulo de Equipamentos (M6) ---
+
+export const equipmentReturnSchema = z.object({
+  condition_on_return: z.enum(['ok', 'damaged', 'lost']),
+  late_return_days: z.number().min(0, "Dias de atraso não podem ser negativos").default(0),
+  damage_notes: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if ((data.condition_on_return === 'damaged' || data.condition_on_return === 'lost') && (!data.damage_notes || data.damage_notes.length < 10)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Notas de dano/perda são obrigatórias (mín 10 carac.)",
+      path: ["damage_notes"]
+    });
+  }
+});
+
+export type EquipmentReturnInput = z.infer<typeof equipmentReturnSchema>;
