@@ -10,9 +10,10 @@ export type State =
   | 'PENDING_APPROVAL'   // Cotado, aguardando alçada de aprovação (Tier 1/2/3)
   | 'APPROVED'           // Aprovado pelo gestor
   | 'PURCHASED'          // Ordem de compra gerada / Pago
-  | 'RECEIVING'          // Em trânsito / Aguardando conferência (M1, M4, M6)
+  | 'IN_TRANSIT'         // Status logístico exclusivo M5 (em transporte)
+  | 'RECEIVING'          // Aguardando conferência física (M1, M4, M6)
   | 'RECEIVED'           // Finalizado com entrada em estoque
-  | 'RELEASED'           // Finalizado com entrega de serviço/voucher (M2, M3, M5)
+  | 'RELEASED'           // Finalizado com entrega de serviço/voucher/frete (M2, M3, M5)
   | 'REJECTED'           // Reprovado (pode precisar de revisão)
   | 'REVISION_REQUESTED';// Devolvido para o requisitante ajustar
 
@@ -25,8 +26,10 @@ export type Event =
   | 'REQUEST_REVISION'   // Gestor ou Comprador pede ajuste ao usuário
   | 'RESUBMIT'           // Usuário ajusta e reenvia
   | 'FINALIZE_PURCHASE'  // Comprador fecha com fornecedor
-  | 'START_RECEIVING'    // Nota fiscal emitida / Produto saiu
+  | 'EXECUTE_TRANSPORT'  // Início do transporte (M5)
+  | 'START_RECEIVING'    // Nota fiscal emitida / Produto saiu (M1, M4...)
   | 'RECEIVE'            // Almoxarifado confirma chegada
+  | 'ATTEST_DELIVERY'    // Confirmação de entrega de frete (M5)
   | 'RELEASE_SERVICE';   // Serviço prestado / Voucher enviado (não-recebível)
 
 export const workflowMachine = {
@@ -58,13 +61,19 @@ export const workflowMachine = {
       }
     },
     APPROVED: {
-      on: { FINALIZE_PURCHASE: 'PURCHASED' }
+      on: { 
+        FINALIZE_PURCHASE: 'PURCHASED'
+      }
     },
     PURCHASED: {
       on: { 
-        START_RECEIVING: 'RECEIVING',  // Para produtos (M1, M6...)
-        RELEASE_SERVICE: 'RELEASED'    // Para serviços/viagens (M2, M3...)
+        START_RECEIVING: 'RECEIVING',   // Para produtos (M1, M6...)
+        EXECUTE_TRANSPORT: 'IN_TRANSIT', // Para logística (M5)
+        RELEASE_SERVICE: 'RELEASED'     // Para serviços/viagens (M2, M3...)
       }
+    },
+    IN_TRANSIT: {
+      on: { ATTEST_DELIVERY: 'RELEASED' }
     },
     RECEIVING: {
       on: { RECEIVE: 'RECEIVED' }
