@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { productRequestSchema } from '@/lib/validation/schemas';
 import { mockApiClient } from '@/lib/api/client.mock';
-import { createMockProductRequest } from '@/packages/core/test-utils/factories';
+import { createMockProductRequest } from '@core/test-utils/factories';
 
 describe('M1ToQuotationIntegration', () => {
   it('M1 submit válido gera ticket com status "submitted"', async () => {
@@ -39,6 +39,5 @@ describe('M1ToQuotationIntegration', () => {
 
     const res: any = await mockApiClient.post('/api/requests/products', dataWithManyItems);
     expect(res.status).toBe('success');
-    // Em um teste real com DB, verificaríamos o retorno de itens
   });
 });
