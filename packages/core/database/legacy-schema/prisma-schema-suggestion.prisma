@@ -1,0 +1,82 @@
+// Prisma Schema Suggestion based on legacy MySQL structure
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(64)
+  password  String   @db.VarChar(255)
+  role      Role     @default(common)
+  createdAt DateTime @default(now()) @map("created_at")
+  requests  Request[]
+
+  @@map("users")
+}
+
+enum Role {
+  admin
+  common
+}
+
+model Request {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @map("user_id")
+  username     String        @db.VarChar(64)
+  type         String        @db.VarChar(32)
+  status       RequestStatus @default(Pendente)
+  details      Json?
+  mainFilePath String?       @map("main_file_path") @db.VarChar(255)
+  submittedAt  DateTime      @default(now()) @map("submitted_at")
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("requests")
+}
+
+enum RequestStatus {
+  Pendente
+  Aprovado
+  Reprovado
+  Arquivado
+}
+
+// Type Suggestions for the 'details' JSON field
+/*
+interface TravelDetails {
+  departamento: string;
+  centroCusto: string;
+  cliente: string;
+  endereco: string;
+  complemento: string;
+  bairro: string;
+  cidade: string;
+  uf: string;
+  cep: string;
+  objetivo: string;
+  nomeCompleto: string;
+  rg: string;
+  cpf: string;
+  dataNascimento: string;
+  celularEmpresa: string;
+  email: string;
+  origem: string;
+  destino: string;
+  dataIda: string;
+  dataVolta: string;
+  observacoesViagem: string;
+  locacaoVeiculo: boolean;
+  tipoLocacao?: string;
+  tipoVeiculo?: string;
+  obsVeiculo?: string;
+  necessitaHospedagem: boolean;
+  periodoHospedagem?: string;
+  obsHospedagem?: string;
+}
+*/

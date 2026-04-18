@@ -1,0 +1,82 @@
+[
+  {
+    "form": "TravelRequestForm",
+    "context": "viagens",
+    "fields": [
+      { "name": "departamento", "label": "Departamento", "type": "text", "required": true },
+      { "name": "centroCusto", "label": "Centro Custo/Projeto", "type": "text", "required": true },
+      { "name": "cliente", "label": "Cliente", "type": "text", "required": true },
+      { "name": "endereco", "label": "Endereço", "type": "text", "required": true },
+      { "name": "complemento", "label": "Complemento", "type": "text", "required": true },
+      { "name": "bairro", "label": "Bairro", "type": "text", "required": true },
+      { "name": "cidade", "label": "Cidade", "type": "text", "required": true },
+      { "name": "uf", "label": "UF", "type": "text", "required": true },
+      { "name": "cep", "label": "CEP", "type": "text", "required": true },
+      { "name": "objetivo", "label": "Objetivo", "type": "textarea", "required": true },
+      { "name": "nomeCompleto", "label": "Nome Completo", "type": "text", "required": true },
+      { "name": "rg", "label": "RG", "type": "text", "required": true },
+      { "name": "cpf", "label": "CPF", "type": "text", "required": true },
+      { "name": "dataNascimento", "label": "Data de Nascimento", "type": "date", "required": true },
+      { "name": "celularEmpresa", "label": "Celular da Empresa", "type": "text", "required": true },
+      { "name": "email", "label": "Email", "type": "email", "required": true },
+      { "name": "origem", "label": "Origem", "type": "text", "required": true },
+      { "name": "destino", "label": "Destino", "type": "text", "required": true },
+      { "name": "dataIda", "label": "Data da Ida", "type": "date", "required": true },
+      { "name": "dataVolta", "label": "Data da Volta", "type": "date", "required": true },
+      { "name": "observacoesViagem", "label": "Observações (Informar qual horário deve estar no destino)", "type": "textarea", "required": true },
+      { "name": "locacaoVeiculo", "label": "Locação", "type": "checkbox", "required": false },
+      { "name": "tipoLocacao", "label": "Tipo de Locação", "type": "select", "required": true, "condition": "locacaoVeiculo == true" },
+      { "name": "tipoVeiculo", "label": "Tipo de Veículo", "type": "text", "required": true, "condition": "locacaoVeiculo == true" },
+      { "name": "obsVeiculo", "label": "Observação", "type": "text", "required": true, "condition": "locacaoVeiculo == true" },
+      { "name": "necessitaHospedagem", "label": "Necessita de Hospedagem?", "type": "checkbox", "required": false },
+      { "name": "periodoHospedagem", "label": "Período", "type": "text", "required": true, "condition": "necessitaHospedagem == true" },
+      { "name": "obsHospedagem", "label": "Observação", "type": "text", "required": true, "condition": "necessitaHospedagem == true" },
+      { "name": "declaroCiente", "label": "DECLARO ESTAR CIENTE DAS INFORMAÇÕES ACIMA", "type": "checkbox", "required": true }
+    ]
+  },
+  {
+    "form": "MunckRequestForm",
+    "context": "munck",
+    "fields": [
+      { "name": "encarregado", "label": "Encarregado do Serviço", "type": "text", "required": true },
+      { "name": "clienteProjeto", "label": "Cliente/Projeto", "type": "text", "required": true },
+      { "name": "localServico", "label": "Local do Serviço (Endereço Completo)", "type": "text", "required": true },
+      { "name": "dataServico", "label": "Data do Serviço", "type": "date", "required": true },
+      { "name": "horaServico", "label": "Hora do Serviço", "type": "time", "required": true },
+      { "name": "servicoTransporte", "label": "Necessita de Serviço de Transporte?", "type": "checkbox", "required": false },
+      { "name": "especificacaoTransporte", "label": "Especifique o tipo de caminhão, capacidade (TON) e comprimento (M)", "type": "textarea", "required": true, "condition": "servicoTransporte == true" },
+      { "name": "locacaoMunck", "label": "Necessita de Locação de Munck?", "type": "checkbox", "required": false },
+      { "name": "pesoCarga", "label": "Peso da Carga (kg)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "alturaCarga", "label": "Altura da Carga (m)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "comprimentoCarga", "label": "Comprimento da Carga (m)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "tempoEstimado", "label": "Tempo Estimado (horas)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "qtdMuncks", "label": "Quantidade de Munck(s)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "tamanhoLanca", "label": "Tamanho da Lança (m)", "type": "number", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "tamanhoMunck", "label": "Tamanho do Munck", "type": "select", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "outroTamanhoMunck", "label": "Especifique o Tamanho", "type": "text", "required": true, "condition": "tamanhoMunck == 'outro'" },
+      { "name": "descricaoServico", "label": "Descrição do Serviço", "type": "textarea", "required": true, "condition": "locacaoMunck == true" },
+      { "name": "paleteira", "label": "Paleteira Hidráulica (Especificações e Qtd)", "type": "text", "required": true },
+      { "name": "paleteiraEletrica", "label": "Paleteira Elétrica (Especificações e Qtd)", "type": "text", "required": true },
+      { "name": "cintaElevacao", "label": "Cinta de Elevação (Especificações e Qtd)", "type": "text", "required": true },
+      { "name": "ganchos", "label": "Ganchos (Especificações e Qtd)", "type": "text", "required": true },
+      { "name": "ajudante", "label": "Ajudante (Quantidade)", "type": "number", "required": true },
+      { "name": "outrosEquipamentos", "label": "Outros (Especificações e Qtd)", "type": "text", "required": true }
+    ]
+  },
+  {
+    "form": "ScaffoldRequestForm",
+    "context": "andaimes",
+    "fields": [
+      { "name": "solicitante", "label": "Nome do Solicitante", "type": "text", "required": true },
+      { "name": "projeto", "label": "Projeto", "type": "text", "required": true },
+      { "name": "tipoEquipamento", "label": "Tipo de Equipamento", "type": "select", "required": true },
+      { "name": "altura", "label": "Altura Necessária (m)", "type": "number", "required": true },
+      { "name": "largura", "label": "Largura (m)", "type": "number", "required": true },
+      { "name": "precisaART", "label": "Precisa ART?", "type": "select", "required": true },
+      { "name": "dataInicio", "label": "Data de Início", "type": "date", "required": true },
+      { "name": "periodoDias", "label": "Período em dias", "type": "number", "required": true },
+      { "name": "localInstalacao", "label": "Local de Instalação", "type": "text", "required": true },
+      { "name": "observacoes", "label": "Observações", "type": "textarea", "required": true }
+    ]
+  }
+]

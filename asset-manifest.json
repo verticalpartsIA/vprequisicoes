@@ -1,0 +1,29 @@
+{
+  "project": "vprequisições",
+  "migration_date": "2026-04-16",
+  "source": "_vpsistema.com",
+  "assets": {
+    "styles": [
+      { "source": "public_html/assets/index-BwiAqp1Z.css", "dest": "src/styles/legacy/legacy-compiled.css" },
+      { "transformation": "tokens.ts", "dest": "src/styles/legacy/tokens.ts" }
+    ],
+    "backend_utilities": [
+      { "source": "api/config.php", "dest": "packages/core/legacy-reference/config.php" },
+      { "source": "api/helpers.php", "dest": "packages/core/legacy-reference/helpers.php" },
+      { "source": "api/db.php", "dest": "packages/core/legacy-reference/db.php" }
+    ],
+    "api_contracts": [
+      { "source": "api/api.php", "dest": "packages/core/api-contracts/api-contract.md" }
+    ],
+    "form_structures": [
+      { "source": "public_html/solicitacoes/index.html", "dest": "packages/modules/M1-products/legacy-forms-reference/fields-extract.json" }
+    ],
+    "validation_rules": [
+      { "source": "logic_extraction", "dest": "packages/core/validation/legacy-rules/validation-spec.md" }
+    ],
+    "database_schema": [
+      { "transformation": "prisma-schema-suggestion.prisma", "dest": "packages/core/database/legacy-schema/prisma-schema-suggestion.prisma" }
+    ]
+  },
+  "summary": "Assets extracted for reference to port logic to TypeScript/Node. Pure binary image copy was skipped due to platform command limitations, but design tokens were successfully extracted."
+}
