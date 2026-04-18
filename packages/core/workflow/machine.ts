@@ -1,90 +1,97 @@
-/**
- * Máquina de Estados Finita para o Fluxo de Requisições v2
- * Fluxo: Requisição (M1-M11) → Cotação → Aprovação → Compra → [Recebimento ou Liberação]
- */
-
-export type State = 
-  | 'DRAFT'              // Rascunho
-  | 'SUBMITTED'          // Enviado, aguardando início de cotação
-  | 'QUOTING'            // Em processo de cotação (comprador trabalhando)
-  | 'PENDING_APPROVAL'   // Cotado, aguardando alçada de aprovação (Tier 1/2/3)
+export type State =
+  | 'DRAFT'              // Rascunho inicial
+  | 'SUBMITTED'          // Enviado — aguarda cotação ou aprovação direta
+  | 'QUOTING'            // Em cotação (sem contrato vigente)
+  | 'PENDING_APPROVAL'   // Aguardando alçada (Tier 1/2/3)
   | 'APPROVED'           // Aprovado pelo gestor
-  | 'PURCHASED'          // Ordem de compra gerada / Pago
-  | 'RECEIVING'          // Em trânsito / Aguardando conferência (M1, M4, M6)
-  | 'RECEIVED'           // Finalizado com entrada em estoque
-  | 'RELEASED'           // Finalizado com entrega de serviço/voucher (M2, M3, M5)
-  | 'REJECTED'           // Reprovado (pode precisar de revisão)
-  | 'REVISION_REQUESTED';// Devolvido para o requisitante ajustar
+  | 'PURCHASING'         // OC sendo gerada / leilão em andamento
+  | 'RECEIVING'          // Entrada física em estoque (M1, M4)
+  | 'RELEASING'          // Ateste digital de entrega (M2, M3, M5)
+  | 'IN_USE'             // Equipamento em uso — check-in (M6)
+  | 'RETURNED'           // Equipamento devolvido — check-out (M6)
+  | 'RELEASED'           // Finalizado — estado terminal único
+  | 'REJECTED';          // Reprovado definitivamente
 
-export type Event = 
-  | 'SUBMIT'             // Enviar rascunho
-  | 'START_QUOTE'        // Comprador assume o ticket
-  | 'COMPLETE_QUOTE'     // Preços definidos, enviar para aprovação
-  | 'APPROVE'            // Gestor aprova o valor cotado
-  | 'REJECT'             // Gestor reprova definitivamente
-  | 'REQUEST_REVISION'   // Gestor ou Comprador pede ajuste ao usuário
-  | 'RESUBMIT'           // Usuário ajusta e reenvia
-  | 'FINALIZE_PURCHASE'  // Comprador fecha com fornecedor
-  | 'START_RECEIVING'    // Nota fiscal emitida / Produto saiu
-  | 'RECEIVE'            // Almoxarifado confirma chegada
-  | 'RELEASE_SERVICE';   // Serviço prestado / Voucher enviado (não-recebível)
+export type Event =
+  | 'SUBMIT'             // DRAFT → SUBMITTED
+  | 'START_QUOTE'        // SUBMITTED → QUOTING (sem contrato)
+  | 'SKIP_QUOTE'         // SUBMITTED → PENDING_APPROVAL (com contrato, ex: M4)
+  | 'COMPLETE_QUOTE'     // QUOTING → PENDING_APPROVAL (preços definidos)
+  | 'APPROVE'            // PENDING_APPROVAL → APPROVED
+  | 'REJECT'             // PENDING_APPROVAL → REJECTED (definitivo)
+  | 'SEND_TO_REVISION'   // PENDING_APPROVAL → SUBMITTED (revisão/rejeição para retrabalho)
+  | 'FINALIZE_PURCHASE'  // APPROVED → PURCHASING (compra direta ou leilão)
+  | 'RECEIVE_PHYSICAL'   // PURCHASING → RECEIVING (M1, M4 — item físico)
+  | 'ATTEST_DIGITAL'     // PURCHASING → RELEASING (M2, M3, M5 — serviço/viagem/frete)
+  | 'CHECKIN_EQUIPMENT'  // PURCHASING → IN_USE (M6 — locação)
+  | 'CONFIRM_RECEIPT'    // RECEIVING → RELEASED (almoxarifado confirma entrada)
+  | 'CONFIRM_ATTESTATION'// RELEASING → RELEASED (gestor atesta execução)
+  | 'CHECKOUT_EQUIPMENT' // IN_USE → RETURNED (devolução do equipamento)
+  | 'CONFIRM_RETURN';    // RETURNED → RELEASED (check-out concluído)
 
 export const workflowMachine = {
-  initial: 'DRAFT',
+  initial: 'DRAFT' as State,
   states: {
     DRAFT: {
-      on: { SUBMIT: 'SUBMITTED' }
+      on: { SUBMIT: 'SUBMITTED' as State }
     },
     SUBMITTED: {
-      on: { 
-        START_QUOTE: 'QUOTING',
-        REQUEST_REVISION: 'REVISION_REQUESTED'
+      on: {
+        START_QUOTE:  'QUOTING' as State,          // sem contrato vigente
+        SKIP_QUOTE:   'PENDING_APPROVAL' as State, // M4 com contrato ativo
       }
     },
-    REVISION_REQUESTED: {
-      on: { RESUBMIT: 'SUBMITTED' }
-    },
     QUOTING: {
-      on: { 
-        COMPLETE_QUOTE: 'PENDING_APPROVAL',
-        REQUEST_REVISION: 'REVISION_REQUESTED'
+      on: {
+        COMPLETE_QUOTE: 'PENDING_APPROVAL' as State,
       }
     },
     PENDING_APPROVAL: {
-      on: { 
-        APPROVE: 'APPROVED',
-        REJECT: 'REJECTED',
-        REQUEST_REVISION: 'REVISION_REQUESTED'
+      on: {
+        APPROVE:          'APPROVED' as State,
+        REJECT:           'REJECTED' as State,   // definitivo
+        SEND_TO_REVISION: 'SUBMITTED' as State,  // volta para retrabalho
       }
     },
     APPROVED: {
-      on: { FINALIZE_PURCHASE: 'PURCHASED' }
+      on: {
+        FINALIZE_PURCHASE: 'PURCHASING' as State,
+      }
     },
-    PURCHASED: {
-      on: { 
-        START_RECEIVING: 'RECEIVING',  // Para produtos (M1, M6...)
-        RELEASE_SERVICE: 'RELEASED'    // Para serviços/viagens (M2, M3...)
+    PURCHASING: {
+      on: {
+        RECEIVE_PHYSICAL:   'RECEIVING' as State,  // M1, M4
+        ATTEST_DIGITAL:     'RELEASING' as State,  // M2, M3, M5
+        CHECKIN_EQUIPMENT:  'IN_USE' as State,     // M6
       }
     },
     RECEIVING: {
-      on: { RECEIVE: 'RECEIVED' }
+      on: { CONFIRM_RECEIPT: 'RELEASED' as State }
     },
-    RECEIVED: {
-      type: 'final'
+    RELEASING: {
+      on: { CONFIRM_ATTESTATION: 'RELEASED' as State }
+    },
+    IN_USE: {
+      on: { CHECKOUT_EQUIPMENT: 'RETURNED' as State }
+    },
+    RETURNED: {
+      on: { CONFIRM_RETURN: 'RELEASED' as State }
     },
     RELEASED: {
-      type: 'final'
+      type: 'final' as const
     },
     REJECTED: {
-      type: 'final'
-    }
+      type: 'final' as const
+    },
   }
 };
 
-/**
- * Helper para verificar se um módulo é "Recebível" (Logística/Almoxarifado)
- */
-export const isModuleReceivable = (moduleCode: string): boolean => {
-  const receivables = ['M1', 'M4', 'M6'];
-  return receivables.includes(moduleCode);
+export const getNextEvent = (moduleCode: string): Event => {
+  if (['M1', 'M4'].includes(moduleCode)) return 'RECEIVE_PHYSICAL';
+  if (['M2', 'M3', 'M5'].includes(moduleCode)) return 'ATTEST_DIGITAL';
+  if (moduleCode === 'M6') return 'CHECKIN_EQUIPMENT';
+  return 'ATTEST_DIGITAL';
 };
+
+export const isModuleReceivable = (moduleCode: string): boolean =>
+  ['M1', 'M4'].includes(moduleCode);
