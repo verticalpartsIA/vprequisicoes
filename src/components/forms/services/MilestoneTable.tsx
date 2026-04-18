@@ -59,8 +59,8 @@ export const MilestoneTable = ({ control, register, errors }: MilestoneTableProp
                     placeholder="Ex: Entrega de Material"
                     className="w-full bg-transparent border-none p-2 text-xs text-white placeholder:text-slate-700 outline-none focus:ring-1 focus:ring-brand/30 rounded-lg"
                   />
-                  {errors.milestones?.[index]?.name && (
-                    <p className="text-[8px] text-rose-500 font-bold ml-2">{errors.milestones[index].name?.message}</p>
+                  {(errors.milestones as any)?.[index]?.name && (
+                    <p className="text-[8px] text-rose-500 font-bold ml-2">{(errors.milestones as any)[index].name?.message}</p>
                   )}
                 </td>
                 <td className="p-3">

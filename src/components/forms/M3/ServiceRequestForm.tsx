@@ -25,6 +25,7 @@ import { mockApiClient } from '@/lib/api/client.mock';
 import { MilestoneTable } from '../services/MilestoneTable';
 import { ProviderSelector } from '../services/ProviderSelector';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { SERVICE_TYPES } from '@/../packages/modules/M3-services/constants';
 
 export const ServiceRequestForm = () => {
@@ -87,28 +88,21 @@ export const ServiceRequestForm = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome do Solicitante</label>
-            <div className="relative group">
-              <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-brand transition-colors" />
-              <input 
-                {...register('requester_name')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-5 pl-14 text-sm text-white focus:border-brand focus:ring-8 focus:ring-brand/5 outline-none transition-all shadow-inner"
-              />
-            </div>
-            {errors.requester_name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.requester_name.message as string}</p>}
-          </div>
+          <Input
+            label="Nome do Solicitante"
+            tooltip="Nome completo do colaborador solicitante"
+            icon={<User className="w-5 h-5" />}
+            {...register('requester_name')}
+            error={errors.requester_name?.message}
+          />
 
-          <div className="space-y-3">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Departamento</label>
-            <div className="relative group">
-              <Building2 className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-brand transition-colors" />
-              <input 
-                {...register('requester_department')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-5 pl-14 text-sm text-white focus:border-brand focus:ring-8 focus:ring-brand/5 outline-none transition-all"
-              />
-            </div>
-          </div>
+          <Input
+            label="Departamento"
+            tooltip="Centro de custo ou área responsável pelo serviço"
+            icon={<Building2 className="w-5 h-5" />}
+            {...register('requester_department')}
+            error={errors.requester_department?.message}
+          />
         </div>
       </div>
 
@@ -163,37 +157,33 @@ export const ServiceRequestForm = () => {
           {errors.scope_description && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.scope_description.message as string}</p>}
         </div>
 
-        <div className="space-y-3">
-          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Local de Execução (Endereço Completo)</label>
-          <div className="relative group">
-            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-brand transition-colors" />
-            <input 
-              {...register('location_address')}
-              className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-5 pl-14 text-sm text-white focus:border-brand outline-none transition-all"
-            />
-          </div>
-          {errors.location_address && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.location_address.message as string}</p>}
-        </div>
+        <Input
+          label="Local de Execução (Endereço Completo)"
+          tooltip="Endereço exato onde o serviço será realizado"
+          icon={<MapPin className="w-5 h-5" />}
+          {...register('location_address')}
+          error={errors.location_address?.message}
+        />
 
         {/* CAMPOS CONDICIONAIS PARA INSTALAÇÃO */}
         {serviceType === 'installation' && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-slate-900/30 border border-brand/20 rounded-[2rem] animate-in zoom-in-95 duration-500">
-             <div className="space-y-3">
-                <label className="text-[10px] font-black text-brand uppercase tracking-widest ml-1">Código da Obra (Obrigatório)</label>
-                <input 
-                  {...register('work_code')}
-                  className="w-full bg-slate-950 border-2 border-brand/20 rounded-2xl p-4 text-xs text-white focus:border-brand outline-none"
-                  placeholder="Ex: OBRA-2024-XPTO"
-                />
-                {errors.work_code && <p className="text-[10px] font-bold text-rose-500">{errors.work_code.message as string}</p>}
-             </div>
-             <div className="space-y-3">
-                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Endereço da Obra</label>
-                <input 
-                  {...register('work_address')}
-                  className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 text-xs text-white focus:border-brand outline-none"
-                />
-             </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-8 bg-slate-900/30 border border-brand/20 rounded-[2rem] animate-in zoom-in-95 duration-500">
+             <Input
+               label="Código da Obra"
+               tooltip="Código identificador do projeto no sistema de obras"
+               {...register('work_code')}
+               error={errors.work_code?.message}
+               placeholder="Ex: OBRA-2024-XPTO"
+               required
+             />
+             <Input
+               label="Endereço da Obra"
+               tooltip="Endereço específico do canteiro de obras"
+               {...register('work_address')}
+               error={errors.work_address?.message}
+             />
+          </div>
           </div>
         )}
       </div>
@@ -221,22 +211,21 @@ export const ServiceRequestForm = () => {
         </div>
 
         {payByMilestone && (
-          <MilestoneTable control={control} register={register} errors={errors} />
+          <MilestoneTable control={control as any} register={register} errors={errors} />
         )}
 
-        <div className="max-w-md mx-auto space-y-4 pt-10 border-t border-surface-border/20 text-center">
-          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Valor Estimado (Global)</label>
-          <div className="relative group">
-            <DollarSign className="absolute left-6 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-600 group-focus-within:text-emerald-500 transition-colors" />
-            <input 
-              type="number"
-              step="0.01"
-              {...register('estimated_value', { valueAsNumber: true })}
-              className="w-full bg-slate-950 border-2 border-surface-border rounded-full p-6 pl-16 text-2xl font-black text-emerald-500 focus:border-emerald-500 ring-8 ring-emerald-500/0 focus:ring-emerald-500/5 outline-none transition-all text-center"
-              placeholder="0,00"
-            />
-          </div>
-          <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.2em]">Referência inicial para negociação competitiva</p>
+        <div className="max-w-md mx-auto pt-10 border-t border-surface-border/20">
+          <Input 
+            label="Valor Estimado (Global)"
+            tooltip="Valor total de referência para o serviço"
+            icon={<DollarSign className="w-6 h-6" />}
+            type="number"
+            step="0.01"
+            className="text-2xl font-black text-emerald-500 text-center h-20"
+            {...register('estimated_value', { valueAsNumber: true })}
+            error={errors.estimated_value?.message}
+            hint="Referência inicial para negociação competitiva"
+          />
         </div>
       </div>
 
@@ -252,7 +241,7 @@ export const ServiceRequestForm = () => {
           </div>
         </div>
 
-        <ProviderSelector register={register} errors={errors} control={control} />
+        <ProviderSelector register={register} errors={errors} control={control as any} />
       </div>
 
       {/* FOOTER AÇÕES STICKY */}

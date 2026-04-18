@@ -17,7 +17,7 @@ export const mockTravelRequestHandler = (data: TravelRequestInput) => {
     details: data
   };
 
-  mockTicketList.unshift(newTicket);
+  mockTicketList.unshift(newTicket as any);
   
   // Persistir no localStorage para o E2E
   if (typeof window !== 'undefined') {
