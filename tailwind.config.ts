@@ -1,5 +1,4 @@
 import type { Config } from "tailwindcss";
-import { legacyTokens } from "./src/styles/legacy/tokens";
 
 const config: Config = {
   content: [
@@ -12,13 +11,13 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          DEFAULT: legacyTokens.colors.brand.primary,
-          dark: legacyTokens.colors.brand.dark,
+          DEFAULT: '#f59e0b',
+          dark: '#d97706',
         },
         surface: {
-          bg: legacyTokens.colors.surface.bg,
-          card: legacyTokens.colors.surface.card,
-          border: legacyTokens.colors.surface.border,
+          bg: '#0f172a',
+          card: '#1e293b',
+          border: '#334155',
         },
       },
       fontFamily: {
