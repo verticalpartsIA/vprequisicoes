@@ -20,6 +20,10 @@ export const formatPurchaseOrder = (
     oc_number: generateOCNumber(),
     issued_at: new Date().toISOString(),
     ...input,
+    items: input.items.map((item, idx) => ({
+      ...item,
+      id: `ITEM-${ticketId}-${idx + 1}`
+    })),
     currency: 'BRL'
   };
 };

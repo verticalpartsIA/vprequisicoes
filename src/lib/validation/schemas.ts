@@ -73,16 +73,16 @@ export type QuotationInput = z.infer<typeof quotationSchema>;
 
 // --- MODULE: APPROVAL ---
 export const approvalDecisionSchema = z.discriminatedUnion('decision', [
-  z.object({ 
-    decision: z.literal('approve') 
+  z.object({
+    decision: z.literal('approve')
   }),
-  z.object({ 
-    decision: z.literal('reject'), 
-    reason: z.string().min(10, 'O motivo da reprovação deve ter pelo menos 10 caracteres') 
+  z.object({
+    decision: z.literal('reject'),
+    reason: z.string().min(10, 'O motivo da reprovação deve ter pelo menos 10 caracteres')
   }),
-  z.object({ 
-    decision: z.literal('revision'), 
-    comment: z.string().min(5, 'O comentário de revisão deve ter pelo menos 5 caracteres') 
+  z.object({
+    decision: z.literal('revision'),
+    comment: z.string().min(5, 'O comentário de revisão deve ter pelo menos 5 caracteres')
   })
 ]);
 
@@ -156,7 +156,7 @@ export const travelRequestSchema = z.object({
   pickup_location: z.string().optional(),
   rental_days: z.number().optional(),
   urgency_justification: z.string().optional(),
-  
+
   // International Expansion
   passport_number: z.string().optional(),
   visa_required: z.boolean().default(false),
@@ -228,14 +228,14 @@ export const serviceRequestSchema = z.object({
   service_type: z.enum(['maintenance', 'installation']),
   scope_description: z.string().min(10, "Descreva o escopo técnico (mín 10 carac.)"),
   location_address: z.string().min(5, "Endereço do serviço obrigatório"),
-  
+
   // Instalação
   work_code: z.string().optional(),
   work_address: z.string().optional(),
-  
+
   payment_by_milestone: z.boolean().default(false),
   milestones: z.array(milestoneSchema).optional(),
-  
+
   provider_type: z.enum(['PF', 'PJ']),
   provider_name: z.string().min(3, "Nome/Razão Social obrigatório"),
   provider_document: z.string().refine(val => {
@@ -285,7 +285,7 @@ export const maintenanceRequestSchema = z.object({
   contract_valid_until: z.string().optional(),
   estimated_value: z.number().positive("Valor deve ser positivo").optional(),
   recurrence: z.enum(['one_time', 'monthly', 'quarterly', 'annual']).default('one_time'),
-  
+
   // Recurring Expansion
   contract_frequency: z.enum(['monthly', 'quarterly', 'annual']).optional(),
   next_due_date: z.string().optional(),
@@ -396,3 +396,28 @@ export const equipmentReturnSchema = z.object({
 });
 
 export type EquipmentReturnInput = z.infer<typeof equipmentReturnSchema>;
+
+// --- M6: Requisição de Locação de Equipamento ---
+
+export const rentalRequestSchema = z.object({
+  requester_name: z.string().min(3, "Nome do solicitante obrigatório"),
+  department: z.string().min(2, "Departamento obrigatório"),
+  equipment_name: z.string().min(3, "Descreva o equipamento necessário"),
+  equipment_category: z.enum(['ferramenta', 'veiculo', 'informatica', 'medicao', 'seguranca', 'outro']),
+  quantity: z.number().min(1, "Quantidade mínima é 1").default(1),
+  start_date: z.string().min(1, "Data de início obrigatória"),
+  end_date: z.string().min(1, "Data de devolução obrigatória"),
+  usage_location: z.string().min(3, "Local de uso obrigatório"),
+  justification: z.string().min(10, "Justificativa obrigatória (mín. 10 caracteres)"),
+  preferred_supplier: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.start_date && data.end_date && new Date(data.end_date) <= new Date(data.start_date)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Data de devolução deve ser posterior à data de início",
+      path: ["end_date"]
+    });
+  }
+});
+
+export type RentalRequestInput = z.infer<typeof rentalRequestSchema>;

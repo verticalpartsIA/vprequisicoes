@@ -17,5 +17,10 @@ export interface MaintenanceRequest {
   contract_valid_until?: string;
   estimated_value?: number;
   recurrence: Recurrence;
+  
+  // Recurring Contract Expansion
+  contract_frequency?: Recurrence;
+  next_due_date?: string;
+  auto_renew?: boolean;
   created_at: string;
 }

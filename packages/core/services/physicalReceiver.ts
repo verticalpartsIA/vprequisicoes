@@ -1,4 +1,4 @@
-import { Receipt, ReceiptStatus, ReceivedItem } from '../modules/receiving/types';
+import { Receipt, ReceiptStatus, ReceivedItem } from '../../modules/receiving/types';
 
 export const processPhysicalReceipt = (
   ticketId: string, 

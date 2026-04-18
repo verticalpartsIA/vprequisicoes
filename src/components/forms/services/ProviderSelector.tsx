@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 import React from 'react';
 import { UseFormRegister, FieldErrors, Control, useWatch } from 'react-hook-form';
 import { User, Briefcase, Contact } from 'lucide-react';
@@ -16,18 +16,18 @@ export const ProviderSelector = ({ register, errors, control }: ProviderSelector
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
       <div className="space-y-4">
-        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+        <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">
           Tipo de Fornecedor Sugerido
         </label>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {PROVIDER_TYPES.map((type) => (
             <label
               key={type.value}
-              className={`relative flex items-center p-6 border-2 rounded-3xl cursor-pointer transition-all duration-300 ${
+              className={`relative flex items-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
                 providerType === type.value
                   ? 'bg-brand/5 border-brand ring-4 ring-brand/10'
-                  : 'bg-slate-900 border-surface-border grayscale hover:grayscale-0'
+                  : 'bg-slate-50 border-surface-border grayscale hover:grayscale-0'
               }`}
             >
               <input
@@ -37,7 +37,7 @@ export const ProviderSelector = ({ register, errors, control }: ProviderSelector
                 className="hidden"
               />
               <div className="flex items-center gap-4">
-                <div className={`p-4 rounded-2xl ${providerType === type.value ? 'bg-brand text-slate-950' : 'bg-slate-950 text-slate-500'}`}>
+                <div className={`p-4 rounded-2xl ${providerType === type.value ? 'bg-brand text-slate-950' : 'bg-white text-slate-500'}`}>
                   {type.value === 'PF' ? (
                     <User className="w-6 h-6" />
                   ) : (
@@ -46,7 +46,7 @@ export const ProviderSelector = ({ register, errors, control }: ProviderSelector
                 </div>
                 <div className="flex flex-col">
                   <span className={`text-sm font-black uppercase tracking-tighter ${
-                    providerType === type.value ? 'text-white' : 'text-slate-500'
+                    providerType === type.value ? 'text-slate-900' : 'text-slate-500'
                   }`}>
                     {type.label}
                   </span>
@@ -63,12 +63,12 @@ export const ProviderSelector = ({ register, errors, control }: ProviderSelector
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Nome / Razão Social */}
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">
             {providerType === 'PF' ? 'Nome Completo' : 'Razão Social'}
           </label>
           <input
             {...register('provider_name')}
-            className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 text-sm text-white focus:border-brand outline-none transition-all"
+            className="w-full bg-white border-2 border-surface-border rounded-2xl p-4 text-sm text-slate-900 focus:border-brand outline-none transition-all"
             placeholder={providerType === 'PF' ? "Ex: João da Silva" : "Ex: Tecnologia Ltda"}
           />
           {errors.provider_name && (
@@ -80,14 +80,14 @@ export const ProviderSelector = ({ register, errors, control }: ProviderSelector
 
         {/* Documento (CPF / CNPJ) */}
         <div className="space-y-2">
-          <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
+          <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest ml-1">
             Documento ({providerType === 'PF' ? 'CPF' : 'CNPJ'})
           </label>
           <div className="relative">
             <Contact className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
             <input
               {...register('provider_document')}
-              className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand outline-none transition-all"
+              className="w-full bg-white border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-slate-900 focus:border-brand outline-none transition-all"
               placeholder={providerType === 'PF' ? "000.000.000-00" : "00.000.000/0000-00"}
             />
           </div>

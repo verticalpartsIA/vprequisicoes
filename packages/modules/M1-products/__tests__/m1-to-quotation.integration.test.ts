@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { productRequestSchema } from '@/lib/validation/schemas';
 import { mockApiClient } from '@/lib/api/client.mock';
-import { createMockProductRequest } from '@/packages/core/test-utils/factories';
+import { createMockProductRequest } from '../../../../core/test-utils/factories';
 
 describe('M1ToQuotationIntegration', () => {
   it('M1 submit válido gera ticket com status "submitted"', async () => {
@@ -22,9 +22,9 @@ describe('M1ToQuotationIntegration', () => {
     const res: any = await mockApiClient.get('/api/requests/123');
     
     expect(res.data).toMatchObject({
-      id: "123",
-      status: "submitted",
-      module: "M1"
+      id: 123,
+      status: "SUBMITTED",
+      type: "M1"
     });
   });
 

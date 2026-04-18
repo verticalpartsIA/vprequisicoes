@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -6,6 +6,7 @@ import { mockApiClient } from '@/lib/api/client.mock';
 import { ReceivingForm } from '@/components/forms/receiving/ReceivingForm';
 import { Truck, Loader2, ArrowLeft, ClipboardList, Info, ShieldCheck, Bookmark, FileSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 
 export default function ReceivingDetailPage() {
   const { ticketId } = useParams();
@@ -42,7 +43,7 @@ export default function ReceivingDetailPage() {
   if (!ticket) {
     return (
       <div className="container mx-auto py-20 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4 uppercase tracking-tighter">Pedido de Recebimento Não Localizado</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-4 uppercase tracking-tighter">Pedido de Recebimento Não Localizado</h2>
         <Button onClick={() => router.push('/receiving')} className="font-black uppercase tracking-widest px-8">Voltar para Fila</Button>
       </div>
     );
@@ -52,7 +53,7 @@ export default function ReceivingDetailPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-surface-border/50">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-8 border-b border-surface-border">
         <div className="space-y-4">
           <button 
             onClick={() => router.push('/receiving')}
@@ -62,12 +63,12 @@ export default function ReceivingDetailPage() {
             Voltar para Portaria / Recebimento
           </button>
           <div className="flex items-center space-x-8">
-            <div className="p-5 bg-brand/5 rounded-3xl border border-brand/20 shadow-2xl shadow-brand/10">
+            <div className="p-5 bg-brand/5 rounded-2xl border border-brand/20 shadow-md shadow-brand/10">
               <Truck className="w-12 h-12 text-brand" />
             </div>
             <div>
               <div className="flex items-center space-x-4 mb-3">
-                <span className="text-4xl font-black text-white tracking-tighter uppercase italic">Fluxo Logístico: OC-{ticket.id.toString().padStart(6, '0')}</span>
+                <span className="text-xl font-bold text-slate-900">Fluxo Logístico: OC-{ticket.id.toString().padStart(6, '0')}</span>
                 <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black rounded border border-amber-500/20 uppercase tracking-widest shadow-lg shadow-amber-900/10">
                   {ticket.status}
                 </span>
@@ -75,13 +76,13 @@ export default function ReceivingDetailPage() {
               <div className="flex flex-wrap items-center gap-6 text-slate-500 font-black uppercase tracking-widest text-[9px]">
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Requisição: <span className="text-slate-300">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span></span>
+                  <span>Requisição: <span className="text-slate-600">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span></span>
                 </div>
-                <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
+                <div className="flex items-center gap-2 border-l border-slate-300 pl-6">
                   <ShieldCheck className="w-3.5 h-3.5 text-brand" />
                   <span>Fase Atual: <span className="text-brand">Confirmação de Entrega</span></span>
                 </div>
-                <div className="flex items-center gap-2 border-l border-slate-700 pl-6">
+                <div className="flex items-center gap-2 border-l border-slate-300 pl-6">
                   <FileSearch className="w-3.5 h-3.5 text-slate-600" />
                   <span>Tipo: <span className={isPhysical ? 'text-brand-success' : 'text-cyan-500'}>{isPhysical ? 'Carga Física' : 'Ateste Digital'}</span></span>
                 </div>
@@ -91,7 +92,7 @@ export default function ReceivingDetailPage() {
         </div>
 
         <div className="hidden lg:block">
-            <Button variant="outline" className="border-slate-800 bg-slate-900/40 text-slate-400 font-black text-[10px] uppercase tracking-widest h-12 px-6">
+            <Button variant="outline" className="border-slate-200 bg-slate-50 text-slate-400 font-black text-[10px] uppercase tracking-widest h-12 px-6">
                 Visualizar Ordem de Compra PDF
             </Button>
         </div>
@@ -100,18 +101,18 @@ export default function ReceivingDetailPage() {
       <div className="grid grid-cols-1 gap-12">
         <section className="space-y-8">
            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div className="p-8 bg-slate-900/30 rounded-3xl border border-surface-border/50 shadow-inner">
+              <div className="p-8 bg-slate-900/30 rounded-2xl border border-surface-border shadow-inner">
                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center">
                     <ClipboardList className="w-4 h-4 mr-3 text-brand" /> Resumo do Pedido de Suprimentos
                  </h4>
                  <div className="space-y-4">
                     <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-brand/30 pl-4">"{ticket.details?.justificativa}"</p>
                     <div className="mt-8 grid grid-cols-2 gap-4">
-                        <div className="p-4 bg-slate-950/50 rounded-2xl border border-surface-border/30">
+                        <div className="p-4 bg-white/50 rounded-2xl border border-surface-border">
                             <span className="text-[8px] text-slate-500 uppercase font-black block mb-1">Fornecedor Orçado</span>
                             <span className="text-[10px] font-bold text-slate-200">{ticket.quotation?.items?.[0]?.suppliers?.find((s: any) => s.is_winner)?.name || 'Consultando...'}</span>
                         </div>
-                        <div className="p-4 bg-slate-950/50 rounded-2xl border border-surface-border/30">
+                        <div className="p-4 bg-white/50 rounded-2xl border border-surface-border">
                             <span className="text-[8px] text-slate-500 uppercase font-black block mb-1">Pagamento Previsto</span>
                             <span className="text-[10px] font-bold text-slate-200">Boleto 28 DD</span>
                         </div>
@@ -119,13 +120,13 @@ export default function ReceivingDetailPage() {
                  </div>
               </div>
 
-              <div className="p-8 bg-slate-900/30 rounded-3xl border border-surface-border/50 flex flex-col justify-center">
+              <div className="p-8 bg-slate-900/30 rounded-2xl border border-surface-border flex flex-col justify-center">
                  <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-6 flex items-center">
                     <Info className="w-4 h-4 mr-3 text-brand" /> Direcionamento de Recebimento
                  </h4>
                  <div className="flex items-center justify-between p-6 bg-brand/5 border border-brand/20 rounded-2xl">
                     <div>
-                        <span className="text-xs font-bold text-slate-300 block">Total da Ordem de Compra</span>
+                        <span className="text-xs font-bold text-slate-600 block">Total da Ordem de Compra</span>
                         <p className="text-[9px] text-slate-600 font-bold uppercase tracking-tight">Valor assegurado via leilão digital</p>
                     </div>
                     <span className="text-3xl font-black text-brand italic">
@@ -137,10 +138,30 @@ export default function ReceivingDetailPage() {
         </section>
 
         <section className="animate-in slide-in-from-top-6 duration-1000">
-            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] mb-8 border-b border-surface-border/30 pb-4">Ação de Campo: {isPhysical ? 'Conferência de ITENS' : 'Ateste de Serviço'}</h3>
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.5em] mb-8 border-b border-surface-border pb-4">Ação de Campo: {isPhysical ? 'Conferência de ITENS' : 'Ateste de Serviço'}</h3>
             <ReceivingForm ticket={ticket} />
         </section>
       </div>
+
+      <PageFooterTutorial 
+        steps={[
+          {
+            title: "Conferência de Itens",
+            description: "Para recebimentos físicos, você deve conferir a quantidade recebida em relação à comprada e marcar se o produto está OK ou se há avarias.",
+            icon: <ClipboardList className="w-5 h-5 text-brand" />
+          },
+          {
+            title: "Ateste de Serviço",
+            description: "Para serviços ou viagens, o solicitante deve confirmar se a execução foi satisfatória para liberar o pagamento ao fornecedor.",
+            icon: <ShieldCheck className="w-5 h-5 text-cyan-500" />
+          },
+          {
+            title: "Irreversibilidade",
+            description: "Uma vez finalizado, o recebimento gera registros fiscais e financeiros automáticos. Confira bem antes de enviar.",
+            icon: <Info className="w-5 h-5 text-amber-500" />
+          }
+        ]}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { ShoppingCart, CheckCircle, Calculator } from 'lucide-react';
@@ -13,14 +13,14 @@ export const QuotationSummary = ({ total, itemCount, completedCount }: Quotation
   const isComplete = completedCount === itemCount && itemCount > 0;
 
   return (
-    <div className="bg-surface-card border border-surface-border rounded-xl p-6 shadow-2xl sticky top-24">
+    <div className="bg-surface-card border border-surface-border rounded-xl p-6 shadow-md sticky top-24">
       <h3 className="text-lg font-bold text-white mb-6 flex items-center">
         <Calculator className="w-5 h-5 mr-3 text-brand" />
         Resumo da Cotação
       </h3>
 
       <div className="space-y-6">
-        <div className="flex justify-between items-center pb-4 border-b border-surface-border/50">
+        <div className="flex justify-between items-center pb-4 border-b border-surface-border">
           <span className="text-slate-400 text-sm">Itens Cotados</span>
           <span className={`text-sm font-bold ${isComplete ? 'text-brand-success' : 'text-brand'}`}>
             {completedCount} / {itemCount}

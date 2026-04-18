@@ -19,6 +19,12 @@ export interface TravelRequestInput {
   rental_days?: number;
   is_urgent: boolean;
   urgency_justification?: string;
+  
+  // International Expansion
+  passport_number?: string;
+  visa_required?: boolean;
+  travel_insurance?: boolean;
+  destination_country?: string;
 }
 
 export interface TravelRequest extends TravelRequestInput {

@@ -47,4 +47,40 @@ export const mockTicketList = [
       itens: [{ nome: 'Filtro de Ar', quantidade: 5 }] 
     } 
   },
+  {
+    id: 501,
+    userId: 1,
+    username: 'João Silva',
+    type: 'M5',
+    status: 'SUBMITTED',
+    submittedAt: new Date().toISOString(),
+    details: {
+      direction: 'inbound',
+      origin: 'São Paulo, SP',
+      destination: 'Curitiba, PR',
+      cargo_type: 'Componentes Eletrônicos',
+      weight_kg: 450,
+      justification: 'Reposição urgente de sensores de precisão.'
+    }
+  },
+  {
+    id: 502,
+    userId: 3,
+    username: 'Ricardo Santos',
+    type: 'M5',
+    status: 'APPROVED',
+    submittedAt: new Date().toISOString(),
+    details: {
+      direction: 'outbound',
+      origin: 'Curitiba, PR',
+      destination: 'Belo Horizonte, MG',
+      cargo_type: 'Equipamento Pesado',
+      weight_kg: 2500,
+      justification: 'Envio de máquina reparada para o cliente.'
+    },
+    quotation: {
+      total_amount: 1850.00,
+      carrier: 'TransLog Brasil'
+    }
+  }
 ];

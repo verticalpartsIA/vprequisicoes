@@ -17,8 +17,8 @@ export const ProductItemCard = ({ itemIndex, onRemove, formMethods }: ProductIte
   const { register, formState: { errors } } = formMethods;
 
   return (
-    <div className="relative group p-6 border border-surface-border bg-surface-bg/50 rounded-xl hover:border-brand/50 transition-all duration-300">
-      <div className="absolute -top-3 left-4 px-2 bg-surface-bg text-xs font-bold text-brand uppercase tracking-wider border border-surface-border rounded">
+    <div className="relative group p-6 border border-slate-200 bg-slate-50 rounded-xl hover:border-brand/50 transition-all duration-300">
+      <div className="absolute -top-3 left-4 px-2 bg-white text-xs font-bold text-brand uppercase tracking-wider border border-slate-200 rounded">
         Item #{itemIndex + 1}
       </div>
 
@@ -28,6 +28,7 @@ export const ProductItemCard = ({ itemIndex, onRemove, formMethods }: ProductIte
           <Input
             label="Nome do Produto"
             placeholder="Ex: Parafuso Sextavado M12"
+            tooltip="Nome comercial ou técnico do item solicitado"
             required
             aria-required="true"
             {...register(`itens.${itemIndex}.nome` as const)}
@@ -41,6 +42,7 @@ export const ProductItemCard = ({ itemIndex, onRemove, formMethods }: ProductIte
             label="Quantidade"
             type="number"
             min="1"
+            tooltip="Número de unidades necessárias (mínimo 1)"
             required
             aria-required="true"
             {...register(`itens.${itemIndex}.quantidade` as const, { valueAsNumber: true })}
@@ -53,6 +55,7 @@ export const ProductItemCard = ({ itemIndex, onRemove, formMethods }: ProductIte
           <Input
             label="Especificação Técnica"
             placeholder="Ex: 50mm, Aço Inox 304"
+            tooltip="Detalhes como medidas, cor, marca ou material"
             {...register(`itens.${itemIndex}.especificacao` as const)}
             error={errors.itens?.[itemIndex]?.especificacao?.message}
           />
@@ -62,7 +65,7 @@ export const ProductItemCard = ({ itemIndex, onRemove, formMethods }: ProductIte
       <div className="mt-6 flex justify-end">
         <Button
           type="button"
-          variant="danger"
+          variant="destructive"
           size="sm"
           onClick={onRemove}
           className="opacity-0 group-hover:opacity-100 transition-opacity"

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -45,7 +45,7 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
     setIsLoading(true);
     try {
       await mockApiClient.post(`/api/approval/tickets/${ticket.id}/decide`, data);
-      
+
       const messages = {
          approve: 'Requisição aprovada com sucesso!',
          reject: 'Requisição reprovada.',
@@ -54,7 +54,7 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
 
       setToast({ type: 'success', message: messages[data.decision] });
       setTimeout(() => router.push('/approval'), 1500);
-      
+
     } catch (error: any) {
       setToast({ type: 'error', message: error.message || 'Erro ao processar decisão.' });
     } finally {
@@ -64,9 +64,9 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-      <div className="p-6 bg-surface-card border border-surface-border rounded-2xl shadow-xl">
-        <div className="flex items-center justify-between mb-8 pb-4 border-b border-surface-border/50">
-          <h3 className="text-lg font-bold text-white flex items-center">
+      <div className="p-6 bg-surface-card border border-surface-border rounded-2xl shadow-md">
+        <div className="flex items-center justify-between mb-8 pb-4 border-b border-surface-border">
+          <h3 className="text-lg font-bold text-slate-900 flex items-center">
             <CheckCircle2 className="w-5 h-5 mr-3 text-brand" />
             Decisão do Aprovador
           </h3>
@@ -75,24 +75,24 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
 
         {/* Radio Options */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'approve' ? 'border-brand-success bg-brand-success/5 shadow-lg shadow-brand-success/10' : 'border-surface-border hover:border-slate-600 bg-slate-900/40'}`}>
+          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'approve' ? 'border-brand-success bg-brand-success/5 shadow-lg shadow-brand-success/10' : 'border-surface-border hover:border-slate-300 bg-slate-50'}`}>
             <input type="radio" value="approve" {...register('decision')} className="sr-only" />
             <CheckCircle2 className={`w-8 h-8 mb-2 ${selectedDecision === 'approve' ? 'text-brand-success' : 'text-slate-600'}`} />
-            <span className={`text-sm font-bold uppercase ${selectedDecision === 'approve' ? 'text-white' : 'text-slate-500'}`}>Aprovar</span>
+            <span className={`text-sm font-bold uppercase ${selectedDecision === 'approve' ? 'text-slate-900' : 'text-slate-500'}`}>Aprovar</span>
             {selectedDecision === 'approve' && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-brand-success" />}
           </label>
 
-          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'revision' ? 'border-amber-500 bg-amber-500/5 shadow-lg shadow-amber-500/10' : 'border-surface-border hover:border-slate-600 bg-slate-900/40'}`}>
+          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'revision' ? 'border-amber-500 bg-amber-500/5 shadow-lg shadow-amber-500/10' : 'border-surface-border hover:border-slate-300 bg-slate-50'}`}>
             <input type="radio" value="revision" {...register('decision')} className="sr-only" />
             <RefreshCcw className={`w-8 h-8 mb-2 ${selectedDecision === 'revision' ? 'text-amber-500' : 'text-slate-600'}`} />
-            <span className={`text-sm font-bold uppercase ${selectedDecision === 'revision' ? 'text-white' : 'text-slate-500'}`}>Revisar</span>
+            <span className={`text-sm font-bold uppercase ${selectedDecision === 'revision' ? 'text-slate-900' : 'text-slate-500'}`}>Revisar</span>
             {selectedDecision === 'revision' && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-amber-500" />}
           </label>
 
-          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'reject' ? 'border-rose-500 bg-rose-500/5 shadow-lg shadow-rose-500/10' : 'border-surface-border hover:border-slate-600 bg-slate-900/40'}`}>
+          <label className={`cursor-pointer group relative flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all ${selectedDecision === 'reject' ? 'border-rose-500 bg-rose-500/5 shadow-lg shadow-rose-500/10' : 'border-surface-border hover:border-slate-300 bg-slate-50'}`}>
             <input type="radio" value="reject" {...register('decision')} className="sr-only" />
             <XCircle className={`w-8 h-8 mb-2 ${selectedDecision === 'reject' ? 'text-rose-500' : 'text-slate-600'}`} />
-            <span className={`text-sm font-bold uppercase ${selectedDecision === 'reject' ? 'text-white' : 'text-slate-500'}`}>Reprovar</span>
+            <span className={`text-sm font-bold uppercase ${selectedDecision === 'reject' ? 'text-slate-900' : 'text-slate-500'}`}>Reprovar</span>
             {selectedDecision === 'reject' && <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500" />}
           </label>
         </div>
@@ -102,8 +102,8 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
           {selectedDecision === 'reject' && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Motivo da Reprovação (Mín. 10 caracteres)</label>
-              <textarea 
-                className={`flex min-h-[100px] w-full rounded-lg border ${errors.decision && (errors as any).reason ? 'border-rose-500' : 'border-surface-border'} bg-slate-950 px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-rose-500`}
+              <textarea
+                className={`flex min-h-[100px] w-full rounded-lg border ${errors.decision && (errors as any).reason ? 'border-rose-500' : 'border-surface-border'} bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-rose-500`}
                 placeholder="Explique o motivo do indeferimento..."
                 {...register('reason' as any)}
               />
@@ -114,8 +114,8 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
           {selectedDecision === 'revision' && (
             <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
               <label className="text-xs font-bold text-slate-500 uppercase tracking-widest">Observações para Revisão (Mín. 5 caracteres)</label>
-              <textarea 
-                className={`flex min-h-[100px] w-full rounded-lg border ${errors.decision && (errors as any).comment ? 'border-amber-500' : 'border-surface-border'} bg-slate-950 px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-amber-500`}
+              <textarea
+                className={`flex min-h-[100px] w-full rounded-lg border ${errors.decision && (errors as any).comment ? 'border-amber-500' : 'border-surface-border'} bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-1 focus:ring-amber-500`}
                 placeholder="Indique o que precisa ser ajustado na cotação..."
                 {...register('comment' as any)}
               />
@@ -126,7 +126,7 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
           {selectedDecision === 'approve' && (
             <div className="p-4 bg-brand-success/5 border border-brand-success/20 rounded-xl flex items-start">
               <CheckCircle2 className="w-5 h-5 text-brand-success mr-3 mt-0.5" />
-              <p className="text-xs text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-500 leading-relaxed">
                 Ao aprovar, você autoriza o departamento de compras a prosseguir com o pedido junto ao fornecedor vencedor. Esta ação será registrada em seu nome.
               </p>
             </div>
@@ -147,9 +147,9 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
           loading={isLoading}
           variant="primary"
           disabled={!allowed && selectedDecision === 'approve'}
-          className={`w-full py-6 text-lg font-black tracking-widest uppercase transition-all shadow-2xl ${
-            selectedDecision === 'approve' ? 'shadow-brand-success/20' : 
-            selectedDecision === 'reject' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-900/20' : 
+          className={`w-full py-6 text-lg font-black tracking-widest uppercase transition-all shadow-md ${
+            selectedDecision === 'approve' ? 'shadow-brand-success/20' :
+            selectedDecision === 'reject' ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-900/20' :
             'bg-amber-600 hover:bg-amber-700 shadow-amber-900/20'
           }`}
         >
@@ -159,10 +159,10 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
       </div>
 
       {toast && (
-        <Toast 
-          type={toast.type} 
-          message={toast.message} 
-          onClose={() => setToast(null)} 
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
         />
       )}
     </form>

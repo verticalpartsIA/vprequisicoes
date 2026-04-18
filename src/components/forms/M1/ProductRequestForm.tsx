@@ -69,14 +69,14 @@ export const ProductRequestForm = () => {
 
   return (
     <FormProvider {...methods}>
-      <Card className="max-w-4xl mx-auto shadow-2xl border-surface-border/60">
-        <CardHeader className="border-b border-surface-border/40 pb-8">
+      <Card className="max-w-4xl mx-auto shadow-sm border-surface-border">
+        <CardHeader className="border-b border-surface-border pb-6">
           <div className="flex items-center space-x-4">
             <div className="p-3 bg-brand/10 rounded-xl">
-              <ClipboardList className="w-8 h-8 text-brand" />
+              <ClipboardList className="w-7 h-7 text-brand" />
             </div>
             <div>
-              <CardTitle className="text-2xl">Abertura de Requisição (M1)</CardTitle>
+              <CardTitle>Abertura de Requisição (M1)</CardTitle>
               <CardDescription>Preencha os dados abaixo seguindo as normas da VerticalParts.</CardDescription>
             </div>
           </div>
@@ -86,7 +86,7 @@ export const ProductRequestForm = () => {
           <CardContent className="space-y-10 pt-8">
             {/* Seção: Identificação */}
             <section className="space-y-6">
-              <div className="flex items-center space-x-2 text-slate-400 font-semibold text-sm uppercase tracking-widest">
+              <div className="flex items-center space-x-2 text-slate-600 font-semibold text-xs uppercase tracking-widest">
                 <User className="w-4 h-4" />
                 <span>Identificação</span>
               </div>
@@ -112,7 +112,7 @@ export const ProductRequestForm = () => {
             {/* Seção: Lista de Itens */}
             <section className="space-y-6">
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-slate-400 font-semibold text-sm uppercase tracking-widest">
+                <div className="flex items-center space-x-2 text-slate-600 font-semibold text-xs uppercase tracking-widest">
                   <Plus className="w-4 h-4" />
                   <span>Itens para Cotação ({fields.length})</span>
                 </div>
@@ -142,7 +142,7 @@ export const ProductRequestForm = () => {
 
             {/* Seção: Motivo */}
             <section className="space-y-6">
-              <div className="flex items-center space-x-2 text-slate-400 font-semibold text-sm uppercase tracking-widest">
+              <div className="flex items-center space-x-2 text-slate-600 font-semibold text-xs uppercase tracking-widest">
                 <ClipboardList className="w-4 h-4" />
                 <span>Justificativa da Compra</span>
               </div>
@@ -159,16 +159,17 @@ export const ProductRequestForm = () => {
             </section>
           </CardContent>
 
-          <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t border-surface-border/40 mt-10 pt-8 gap-4">
-            <div className="text-sm text-slate-500 italic">
+          <CardFooter className="flex flex-col sm:flex-row items-center justify-between border-t border-surface-border mt-8 pt-6 gap-4">
+            <div className="text-sm text-slate-500">
               Campos marcados com <span className="text-red-500 font-bold">*</span> são obrigatórios.
             </div>
-            <Button 
-              type="submit" 
-              loading={isLoading} 
-              className="w-full sm:w-auto px-8 py-6 text-lg shadow-xl shadow-brand/20"
+            <Button
+              type="submit"
+              loading={isLoading}
+              size="lg"
+              className="w-full sm:w-auto"
             >
-              <Send className="w-5 h-5 mr-3" />
+              <Send className="w-4 h-4 mr-2" />
               Enviar para Cotação
             </Button>
           </CardFooter>

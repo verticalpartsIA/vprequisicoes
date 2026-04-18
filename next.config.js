@@ -1,9 +1,10 @@
 /** @type {import('next').NextConfig} */
+const path = require('path');
+
 const nextConfig = {
   reactStrictMode: true,
-  /* Turbopack crashes with non-ASCII characters in the file path on Windows */
-  experimental: {
-    turbopack: false,
+  turbopack: {
+    root: path.resolve(__dirname),
   },
 };
 

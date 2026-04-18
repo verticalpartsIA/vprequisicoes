@@ -20,14 +20,24 @@ export const kpiCalculator = {
       return acc + (amount * 0.12); // Mock 12% economy
     }, 0);
 
-    return {
+    const result: KPIResult = {
       total_tickets: tickets.length,
-      tickets_pending_approval: tickets.filter(t => t.status === 'PENDING').length,
+      tickets_pending_approval: tickets.filter(t => t.status === 'PENDING' || t.status === 'SUBMITTED').length,
       total_auction_savings: totalSavings,
       avg_savings_percent: 12.5,
       avg_sla_hours: 4.8,
       delta_tickets: 8.5
     };
+
+    if (module === 'M5') {
+       (result as any).m5_stats = {
+         inbound_volume: tickets.filter(t => t.details?.direction === 'inbound').length,
+         outbound_volume: tickets.filter(t => t.details?.direction === 'outbound').length,
+         total_weight_kg: tickets.reduce((acc, t) => acc + (t.details?.weight_kg || 0), 0)
+       };
+    }
+
+    return result;
   },
 
   getStatusDistribution: (period: DateRange): ChartDataItem[] => {

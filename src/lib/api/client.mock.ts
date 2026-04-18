@@ -9,6 +9,7 @@ import { servicesHandlers } from './mock/services-handlers';
 import { maintenanceHandlers } from './mock/maintenance-handlers';
 
 import { mockFreightRequestHandler } from './mock/freight-handlers';
+import { mockRentalRequestHandler, mockRentalListHandler } from './mock/rental-handlers';
 
 const USE_MOCK = true; // Forçado para desenvolvimento SDD
 
@@ -21,6 +22,10 @@ export const mockApiClient = {
 
     if (path === '/api/requests') {
       return { status: 'success', data: mockTicketList };
+    }
+
+    if (path === '/api/requests/rental') {
+      return { status: 'success', data: mockRentalListHandler() };
     }
 
     if (path === '/api/approval/tickets') {
@@ -103,6 +108,10 @@ export const mockApiClient = {
 
     if (path === '/api/requests/freight') {
       return mockFreightRequestHandler(body);
+    }
+
+    if (path === '/api/requests/rental') {
+      return mockRentalRequestHandler(body);
     }
 
     if (path.includes('/api/requests/products')) {

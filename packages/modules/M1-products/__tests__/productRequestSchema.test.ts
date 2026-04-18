@@ -5,11 +5,12 @@ import { productRequestSchema } from '@/lib/validation/schemas';
 describe('productRequestSchema', () => {
   it('deve aceitar requisição válida com um item completo', () => {
     const input = {
-      department: 'Manutenção',
-      costCenter: 'CP001',
-      justification: 'Necessidade de reparo na bomba principal',
-      items: [
-        { name: 'Parafuso M8', quantity: 100 }
+      solicitante: 'Gelson',
+      departamento: 'Manutenção',
+      centroCusto: 'CP001',
+      justificativa: 'Necessidade de reparo na bomba principal de sucção',
+      itens: [
+        { nome: 'Parafuso M8', quantidade: 100 }
       ]
     };
     
@@ -20,11 +21,12 @@ describe('productRequestSchema', () => {
 
   it('deve rejeitar item sem nome (Extraído do fields-extract.json)', () => {
     const input = {
-      department: 'Manutenção',
-      costCenter: 'CP001',
-      justification: 'Teste',
-      items: [
-        { name: '', quantity: 100 }
+      solicitante: 'Gelson',
+      departamento: 'Manutenção',
+      centroCusto: 'CP001',
+      justificativa: 'Necessidade de reparo na bomba principal',
+      itens: [
+        { nome: '', quantidade: 100 }
       ]
     };
     
@@ -37,11 +39,12 @@ describe('productRequestSchema', () => {
 
   it('deve rejeitar quantidade zero ou negativa', () => {
     const input = {
-      department: 'Vendas',
-      costCenter: 'VC02',
-      justification: 'Uso de escritório',
-      items: [
-        { name: 'Caneta Azul', quantity: 0 }
+      solicitante: 'Gelson',
+      departamento: 'Vendas',
+      centroCusto: 'VC02',
+      justificativa: 'Uso de escritório central da empresa',
+      itens: [
+        { nome: 'Caneta Azul', quantidade: 0 }
       ]
     };
     
@@ -51,13 +54,14 @@ describe('productRequestSchema', () => {
 
   it('deve aceitar múltiplos itens válidos (Requisito Módulo M1)', () => {
     const input = {
-      department: 'TI',
-      costCenter: 'Infra',
-      justification: 'Novos setups para desenvolvedores',
-      items: [
-        { name: 'Monitor 27', quantity: 2 },
-        { name: 'Teclado Mecânico', quantity: 2 },
-        { name: 'Mouse Gamer', quantity: 2 }
+      solicitante: 'Gelson',
+      departamento: 'TI',
+      centroCusto: 'Infra',
+      justificativa: 'Novos setups para desenvolvedores e estagiários',
+      itens: [
+        { nome: 'Monitor 27', quantidade: 2 },
+        { nome: 'Teclado Mecânico', quantidade: 2 },
+        { nome: 'Mouse Gamer', quantidade: 2 }
       ]
     };
     
@@ -67,10 +71,11 @@ describe('productRequestSchema', () => {
 
   it('deve rejeitar array vazio de itens', () => {
     const input = {
-      department: 'RH',
-      costCenter: 'ADM',
-      justification: 'Teste vazio',
-      items: []
+      solicitante: 'Gelson',
+      departamento: 'RH',
+      centroCusto: 'ADM',
+      justificativa: 'Teste vazio para validação',
+      itens: []
     };
     
     const result = productRequestSchema.safeParse(input);

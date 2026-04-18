@@ -2,7 +2,7 @@ name: Test M5-Freight
 
 on:
   push:
-    branches: [ "main", "feature/m5-freight-module" ]
+    branches: [ "main", "feature/m5-freight-integrated" ]
   pull_request:
     branches: [ "main" ]
 
@@ -15,7 +15,7 @@ jobs:
         with:
           node-version: "20"
           cache: "npm"
-      - run: npm ci
+      - run: npm install --legacy-peer-deps
       - name: Run Typecheck
         run: npm run typecheck
       - name: Run M5 Unit Tests

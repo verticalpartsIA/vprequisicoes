@@ -1,4 +1,4 @@
-import { Receipt } from '../modules/receiving/types';
+import { Receipt } from '../../modules/receiving/types';
 
 export const processDigitalAttestation = (
   ticketId: string, 

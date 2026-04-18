@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { useFieldArray, UseFormReturn } from 'react-hook-form';
@@ -35,10 +35,10 @@ export const ItemQuotationCard = ({ itemIndex, originalItem, formMethods }: Item
   const itemErrors: any = errors.items?.[itemIndex];
 
   return (
-    <div className={`overflow-hidden rounded-xl border transition-all ${isExpanded ? 'border-surface-border' : 'border-surface-border/40 bg-surface-bg/30'}`}>
+    <div className={`overflow-hidden rounded-xl border transition-all ${isExpanded ? 'border-surface-border' : 'border-surface-border bg-surface-bg/30'}`}>
       {/* Header */}
       <div 
-        className="flex items-center justify-between p-5 cursor-pointer bg-surface-card/30 hover:bg-surface-card/50"
+        className="flex items-center justify-between p-5 cursor-pointer bg-white hover:bg-surface-card/50"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center space-x-4">
@@ -46,8 +46,8 @@ export const ItemQuotationCard = ({ itemIndex, originalItem, formMethods }: Item
             <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Produto {itemIndex + 1}</span>
             <span className="text-lg font-bold text-white">{originalItem.nome}</span>
           </div>
-          <div className="px-3 py-1 bg-slate-800 rounded-lg border border-slate-700">
-            <span className="text-sm font-semibold text-slate-300">Qtd: {originalItem.quantidade}</span>
+          <div className="px-3 py-1 bg-slate-800 rounded-lg border border-slate-300">
+            <span className="text-sm font-semibold text-slate-600">Qtd: {originalItem.quantidade}</span>
           </div>
         </div>
 
@@ -66,8 +66,8 @@ export const ItemQuotationCard = ({ itemIndex, originalItem, formMethods }: Item
       {isExpanded && (
         <div className="p-6 space-y-6 border-t border-surface-border">
           {originalItem.especificacao && (
-            <div className="p-3 bg-slate-800/40 rounded border border-slate-700 text-sm italic text-slate-400">
-              <span className="font-bold text-slate-300 not-italic mr-2">Especificação:</span>
+            <div className="p-3 bg-slate-800/40 rounded border border-slate-300 text-sm italic text-slate-400">
+              <span className="font-bold text-slate-600 not-italic mr-2">Especificação:</span>
               {originalItem.especificacao}
             </div>
           )}
@@ -107,7 +107,7 @@ export const ItemQuotationCard = ({ itemIndex, originalItem, formMethods }: Item
               ))}
               
               {fields.length === 0 && (
-                <div className="py-10 text-center border-2 border-dashed border-slate-800 rounded-lg">
+                <div className="py-10 text-center border-2 border-dashed border-slate-200 rounded-lg">
                   <p className="text-sm text-slate-600">Nenhum fornecedor adicionado para este item.</p>
                 </div>
               )}

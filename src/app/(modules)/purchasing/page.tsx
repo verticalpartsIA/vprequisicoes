@@ -3,7 +3,8 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Filter, ArrowRight, Gavel, Flashlight, Clock } from 'lucide-react';
+import { ShoppingCart, Filter, ArrowRight, Gavel, Clock } from 'lucide-react';
+import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 import Link from 'next/link';
 import { mockApiClient } from '@/lib/api/client.mock';
 
@@ -29,12 +30,15 @@ export default function PurchasingListPage() {
     <div className="container mx-auto py-10 space-y-8 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight">Console de Compras</h1>
-          <p className="text-slate-400">Transforme requisições aprovadas em Pedidos de Compra (OC).</p>
+          <h1 className="text-2xl font-bold text-slate-900 mb-1 tracking-tight">Console de Compras</h1>
+          <p className="text-slate-500 text-sm">
+            Transforme requisições aprovadas em Pedidos de Compra (OC).{' '}
+            <span className="text-[10px] uppercase font-bold tracking-widest text-brand">Portal do Comprador Senior</span>
+          </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
-          <Button variant="outline" size="sm" className="border-slate-700 bg-slate-900/50">
+          <Button variant="outline" size="sm">
             <Filter className="w-4 h-4 mr-2" />
             Filtrar Urgência
           </Button>
@@ -44,23 +48,19 @@ export default function PurchasingListPage() {
         </div>
       </div>
 
-      <Card className="border-surface-border/60 bg-surface-card/30 backdrop-blur-sm shadow-2xl overflow-hidden">
-        <CardHeader className="border-b border-surface-border/20 mb-6 bg-slate-900/50 py-8">
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="text-xl flex items-center">
-                <ShoppingCart className="w-6 h-6 mr-3 text-brand" />
-                Fila de Execução de Compra
-              </CardTitle>
-              <CardDescription>Tickets com status APPROVED prontos para emissão de OC.</CardDescription>
-            </div>
-          </div>
+      <Card>
+        <CardHeader className="border-b border-slate-200 mb-4">
+          <CardTitle className="flex items-center">
+            <ShoppingCart className="w-5 h-5 mr-2 text-brand" />
+            Fila de Execução de Compra
+          </CardTitle>
+          <CardDescription>Tickets com status APPROVED prontos para emissão de OC.</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-surface-border/50 text-slate-500 text-[10px] uppercase font-black tracking-widest">
+                <tr className="border-b border-slate-200 text-slate-500 text-[10px] uppercase font-bold tracking-widest">
                   <th className="pb-4 pl-4 text-center w-20">Urg.</th>
                   <th className="pb-4">Ticket</th>
                   <th className="pb-4">Módulo</th>
@@ -69,68 +69,70 @@ export default function PurchasingListPage() {
                   <th className="pb-4 text-right pr-4">Ação</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-border/30">
+              <tbody className="divide-y divide-slate-100">
                 {isLoading ? (
                   Array(3).fill(0).map((_, i) => (
                     <tr key={i} className="animate-pulse">
-                      <td colSpan={6} className="py-12 bg-slate-900/10"></td>
+                      <td colSpan={6} className="py-8">
+                        <div className="h-8 bg-slate-100 rounded-lg" />
+                      </td>
                     </tr>
                   ))
                 ) : tickets.length === 0 ? (
                   <tr>
-                    <td colSpan={6} className="py-24 text-center">
-                        <div className="flex flex-col items-center opacity-30">
-                            <ShoppingCart className="w-16 h-16 mb-4" />
-                            <p className="text-sm font-black uppercase tracking-[0.2em]">Nenhum pedido para processar</p>
-                        </div>
+                    <td colSpan={6} className="py-20 text-center">
+                      <div className="flex flex-col items-center opacity-40">
+                        <ShoppingCart className="w-12 h-12 text-slate-300 mb-4" />
+                        <p className="text-sm font-semibold uppercase tracking-widest text-slate-400">Nenhum pedido para processar</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   tickets.map((ticket) => {
                     const amount = Number(ticket.quotation?.total_amount || 0);
-                    const isUrgent = amount > 1000 || ticket.type === 'M3'; // Exemplos de regra
+                    const isUrgent = amount > 1000 || ticket.type === 'M3';
 
                     return (
-                      <tr key={ticket.id} className="group hover:bg-brand/5 transition-all duration-300">
-                        <td className="py-6 pl-4 text-center">
-                           {isUrgent ? (
-                             <div className="inline-flex p-1.5 bg-rose-500/10 rounded-lg text-rose-500 animate-pulse border border-rose-500/20 shadow-lg shadow-rose-900/10">
-                               <Clock className="w-4 h-4" />
-                             </div>
-                           ) : (
-                             <div className="inline-flex p-1.5 bg-slate-800 rounded-lg text-slate-500">
-                               <Clock className="w-4 h-4" />
-                             </div>
-                           )}
+                      <tr key={ticket.id} className="group hover:bg-slate-50 transition-colors">
+                        <td className="py-5 pl-4 text-center">
+                          {isUrgent ? (
+                            <div className="inline-flex p-1.5 bg-red-50 rounded-lg text-red-500 border border-red-200">
+                              <Clock className="w-4 h-4" />
+                            </div>
+                          ) : (
+                            <div className="inline-flex p-1.5 bg-slate-100 rounded-lg text-slate-400">
+                              <Clock className="w-4 h-4" />
+                            </div>
+                          )}
                         </td>
-                        <td className="py-6">
-                           <div className="flex flex-col">
-                             <span className="font-mono font-black text-slate-400">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
-                             <span className="text-[10px] text-brand-success font-black uppercase tracking-tighter">Aprovado por Direção</span>
-                           </div>
+                        <td className="py-5">
+                          <div className="flex flex-col">
+                            <span className="font-mono font-bold text-slate-600 text-sm">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                            <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight">Aprovado por Direção</span>
+                          </div>
                         </td>
-                        <td className="py-6">
-                           <span className="px-2 py-0.5 rounded border border-slate-700 bg-slate-900 text-[10px] font-bold text-slate-500 uppercase">{ticket.type} - Produtos</span>
+                        <td className="py-5">
+                          <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-600 uppercase">{ticket.type} — Produtos</span>
                         </td>
-                        <td className="py-6">
-                          <span className="text-sm font-mono font-black text-white">
+                        <td className="py-5">
+                          <span className="text-sm font-mono font-bold text-slate-900">
                             {amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                           </span>
                         </td>
-                        <td className="py-6">
-                           {amount >= 500 ? (
-                             <div className="flex items-center text-amber-500 text-[10px] font-black uppercase bg-amber-500/5 px-2 py-1 rounded border border-amber-500/10">
-                               <Gavel className="w-3 h-3 mr-2" /> Leilão Recomendado
-                             </div>
-                           ) : (
-                             <div className="flex items-center text-emerald-500 text-[10px] font-black uppercase bg-emerald-500/5 px-2 py-1 rounded border border-emerald-500/10">
-                               <Flashlight className="w-3 h-3 mr-2" /> Compra Direta
-                             </div>
-                           )}
+                        <td className="py-5">
+                          {amount >= 500 ? (
+                            <div className="flex items-center text-amber-700 text-[10px] font-bold uppercase bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                              <Gavel className="w-3 h-3 mr-1.5" /> Leilão Recomendado
+                            </div>
+                          ) : (
+                            <div className="flex items-center text-emerald-700 text-[10px] font-bold uppercase bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                              Compra Direta
+                            </div>
+                          )}
                         </td>
-                        <td className="py-6 text-right pr-4">
+                        <td className="py-5 text-right pr-4">
                           <Link href={`/purchasing/${ticket.id}`}>
-                            <Button size="sm" variant="primary" className="h-10 px-6 font-black tracking-widest uppercase text-xs shadow-lg shadow-brand/10 hover:shadow-brand/20">
+                            <Button size="sm" variant="primary">
                               Iniciar Compra
                               <ArrowRight className="w-4 h-4 ml-2" />
                             </Button>
@@ -145,22 +147,31 @@ export default function PurchasingListPage() {
           </div>
         </CardContent>
       </Card>
-      
-      {/* Footer Info */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         <div className="p-6 bg-slate-900/40 rounded-2xl border border-surface-border/50">
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Lead Time Médio</h4>
-            <p className="text-2xl font-black text-white">4.2 Dias</p>
-         </div>
-         <div className="p-6 bg-slate-900/40 rounded-2xl border border-surface-border/50">
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">Economia Acumulada (Mês)</h4>
-            <p className="text-2xl font-black text-brand-success">R$ 12.450,80</p>
-         </div>
-         <div className="p-6 bg-slate-900/40 rounded-2xl border border-surface-border/50">
-            <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2">OCs Emitidas (Hoje)</h4>
-            <p className="text-2xl font-black text-brand">14 Pedidos</p>
-         </div>
+
+      {/* KPI cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Lead Time Médio</h4>
+          <p className="text-2xl font-bold text-slate-900">4.2 Dias</p>
+        </div>
+        <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Economia Acumulada (Mês)</h4>
+          <p className="text-2xl font-bold text-emerald-600">R$ 12.450,80</p>
+        </div>
+        <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">OCs Emitidas (Hoje)</h4>
+          <p className="text-2xl font-bold text-brand">14 Pedidos</p>
+        </div>
       </div>
+
+      <PageFooterTutorial
+        steps={[
+          "Selecione um ticket aprovado",
+          "Revise as cotações vencedoras",
+          "Escolha a modalidade (Leilão/Direta)",
+          "Gere a Ordem de Compra (OC)"
+        ]}
+      />
     </div>
   );
 }

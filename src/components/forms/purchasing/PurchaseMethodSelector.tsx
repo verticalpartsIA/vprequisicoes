@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Gavel, ShoppingCart, Sparkles, AlertCircle } from 'lucide-react';
@@ -34,13 +34,13 @@ export const PurchaseMethodSelector = ({ amount, method, onChange }: PurchaseMet
           type="button"
           onClick={() => onChange('auction')}
           className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all ${
-            method === 'auction' 
-              ? 'border-brand bg-brand/5 shadow-lg shadow-brand/10' 
-              : 'border-surface-border bg-slate-900/40 hover:border-slate-700'
+            method === 'auction'
+              ? 'border-brand bg-brand/5 shadow-lg shadow-brand/10'
+              : 'border-surface-border bg-slate-50 hover:border-slate-300'
           }`}
         >
           <Gavel className={`w-8 h-8 mb-3 ${method === 'auction' ? 'text-brand' : 'text-slate-600'}`} />
-          <span className={`text-sm font-bold uppercase tracking-tight ${method === 'auction' ? 'text-white' : 'text-slate-500'}`}>
+          <span className={`text-sm font-bold uppercase tracking-tight ${method === 'auction' ? 'text-slate-900' : 'text-slate-500'}`}>
             Leilão Digital
           </span>
           <p className="text-[10px] text-slate-500 mt-2 text-center opacity-70">Redução de custo via disputa entre fornecedores</p>
@@ -50,23 +50,23 @@ export const PurchaseMethodSelector = ({ amount, method, onChange }: PurchaseMet
           type="button"
           onClick={() => onChange('direct')}
           className={`flex flex-col items-center justify-center p-6 rounded-2xl border-2 transition-all ${
-            method === 'direct' 
-              ? 'border-brand-success bg-brand-success/5 shadow-lg shadow-brand-success/10' 
-              : 'border-surface-border bg-slate-900/40 hover:border-slate-700'
+            method === 'direct'
+              ? 'border-brand-success bg-brand-success/5 shadow-lg shadow-brand-success/10'
+              : 'border-surface-border bg-slate-50 hover:border-slate-300'
           }`}
         >
           <ShoppingCart className={`w-8 h-8 mb-3 ${method === 'direct' ? 'text-brand-success' : 'text-slate-600'}`} />
-          <span className={`text-sm font-bold uppercase tracking-tight ${method === 'direct' ? 'text-white' : 'text-slate-500'}`}>
+          <span className={`text-sm font-bold uppercase tracking-tight ${method === 'direct' ? 'text-slate-900' : 'text-slate-500'}`}>
             Compra Direta
           </span>
           <p className="text-[10px] text-slate-500 mt-2 text-center opacity-70">Execução imediata baseada na melhor cotação atual</p>
         </button>
       </div>
 
-      <div className="p-4 bg-slate-900/50 rounded-xl border border-surface-border/50 flex items-start gap-3">
+      <div className="p-4 bg-slate-50 rounded-xl border border-surface-border flex items-start gap-3">
         <AlertCircle className="w-4 h-4 text-slate-500 mt-0.5" />
         <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
-          {method === 'auction' 
+          {method === 'auction'
             ? "O leilão digital convida fornecedores para uma rodada de lances reversos. Ideal para volumes acima de R$ 500,00 visando economia extra."
             : "A compra direta emite a Ordem de Compra imediatamente para o fornecedor vencedor da etapa anterior. Recomendado para urgências ou valores baixos."
           }

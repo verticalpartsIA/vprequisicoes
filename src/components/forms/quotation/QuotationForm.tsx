@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useMemo } from 'react';
 import { useForm, useFieldArray, FormProvider } from 'react-hook-form';
@@ -130,7 +130,7 @@ export const QuotationForm = ({ ticket }: QuotationFormProps) => {
                 type="button"
                 onClick={handleSaveDraft}
                 variant="outline"
-                className="w-full py-4 text-slate-300 border-slate-700"
+                className="w-full py-4 text-slate-600 border-slate-300"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Salvar como Rascunho
