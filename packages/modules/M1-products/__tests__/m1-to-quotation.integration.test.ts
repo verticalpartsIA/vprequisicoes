@@ -22,9 +22,9 @@ describe('M1ToQuotationIntegration', () => {
     const res: any = await mockApiClient.get('/api/requests/123');
     
     expect(res.data).toMatchObject({
-      id: "123",
-      status: "submitted",
-      module: "M1"
+      id: 123,
+      status: "SUBMITTED",
+      type: "M1"
     });
   });
 

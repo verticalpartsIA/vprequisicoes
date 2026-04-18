@@ -278,6 +278,8 @@ export const maintenanceRequestSchema = z.object({
   }
 });
 
+export type MaintenanceRequestInput = z.infer<typeof maintenanceRequestSchema>;
+
 // --- Módulo de Frete (M5) ---
 
 export const freightRequestSchema = z.object({
