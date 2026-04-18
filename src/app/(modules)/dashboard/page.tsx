@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { 
   BarChart3, 
@@ -11,7 +11,11 @@ import {
   AlertCircle,
   FileText,
   DollarSign,
-  Loader2
+  Loader2,
+  Truck,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Weight
 } from 'lucide-react';
 
 import { mockApiClient } from '@/lib/api/client.mock';
@@ -23,7 +27,7 @@ import { DashboardFilters } from '@/components/dashboard/DashboardFilters';
 import { TopSuppliersTable } from '@/components/dashboard/TopSuppliersTable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function DashboardPage() {
+function DashboardContent() {
   const searchParams = useSearchParams();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -94,6 +98,28 @@ export default function DashboardPage() {
         />
       </div>
 
+      {/* M5 Specific KPIs */}
+      {searchParams.get('module') === 'M5' && data.kpis.m5_stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-4 duration-500">
+          <KPICard 
+            label="Inbound (Entrada)" 
+            value={data.kpis.m5_stats.inbound_volume} 
+            icon={<ArrowDownLeft className="w-6 h-6 text-brand" />}
+          />
+          <KPICard 
+            label="Outbound (Saída)" 
+            value={data.kpis.m5_stats.outbound_volume} 
+            icon={<ArrowUpRight className="w-6 h-6 text-brand" />}
+          />
+          <KPICard 
+            label="Peso Total Transportado" 
+            value={data.kpis.m5_stats.total_weight_kg.toLocaleString('pt-BR')} 
+            suffix="kg"
+            icon={<Weight className="w-6 h-6 text-brand" />}
+          />
+        </div>
+      )}
+
       {/* Charts Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <Card className="lg:col-span-2 border-surface-border/60 bg-surface-card/30 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden p-8">
@@ -148,5 +174,13 @@ export default function DashboardPage() {
          </Card>
       </div>
     </div>
+  );
+}
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64 text-slate-400">Carregando dashboard...</div>}>
+      <DashboardContent />
+    </Suspense>
   );
 }
