@@ -24,6 +24,7 @@ import { mockApiClient } from '@/lib/api/client.mock';
 import { TransportSelector } from '../travel/TransportSelector';
 import { UrgencyJustificationCard } from '../travel/UrgencyJustificationCard';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { calculateDaysUntilDeparture } from '@/../packages/core/validation/travelRules';
 
 export const TravelRequestForm = () => {
@@ -54,12 +55,14 @@ export const TravelRequestForm = () => {
       origin: '',
       destination: '',
       departure_date: '',
-      return_date: ''
+      return_date: '',
+      visa_required: false,
+      travel_insurance: true
     }
   });
 
   const departureDate = useWatch({ control, name: 'departure_date' });
-  const urgencyJs = useWatch({ control, name: 'urgency_justification' }) || "";
+  const isInternational = useWatch({ control, name: 'is_international' });
   const transportMode = useWatch({ control, name: 'transport_mode' });
   const needsLodging = useWatch({ control, name: 'needs_lodging' });
   const needsCar = useWatch({ control, name: 'needs_destination_car' });
@@ -105,28 +108,20 @@ export const TravelRequestForm = () => {
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nome Completo</label>
-            <div className="relative">
-              <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                {...register('traveler_name')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand focus:ring-4 focus:ring-brand/10 outline-none transition-all"
-              />
-            </div>
-            {errors.traveler_name && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.traveler_name.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Departamento</label>
-            <div className="relative">
-              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                {...register('traveler_department')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand focus:ring-4 focus:ring-brand/10 outline-none transition-all"
-              />
-            </div>
-            {errors.traveler_department && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.traveler_department.message}</p>}
-          </div>
+          <Input
+            label="Nome Completo"
+            tooltip="Nome completo do colaborador que irá realizar a viagem"
+            {...register('traveler_name')}
+            error={errors.traveler_name?.message}
+            icon={<User className="w-4 h-4" />}
+          />
+          <Input
+            label="Departamento"
+            tooltip="Departamento responsável pelo custo da viagem"
+            {...register('traveler_department')}
+            error={errors.traveler_department?.message}
+            icon={<Building2 className="w-4 h-4" />}
+          />
         </div>
       </div>
 
@@ -150,63 +145,78 @@ export const TravelRequestForm = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Origem</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                {...register('origin')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand outline-none transition-all"
-                placeholder="Cidade de partida"
-              />
-            </div>
-            {errors.origin && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.origin.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Destino</label>
-            <div className="relative">
-              <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                {...register('destination')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand outline-none transition-all"
-                placeholder="Cidade de chegada"
-              />
-            </div>
-            {errors.destination && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.destination.message}</p>}
-          </div>
+          <Input
+            label="Origem"
+            placeholder="Cidade de partida"
+            tooltip="Cidade e estado de partida"
+            {...register('origin')}
+            error={errors.origin?.message}
+            icon={<MapPin className="w-4 h-4" />}
+          />
+          <Input
+            label="Destino"
+            placeholder="Cidade de chegada"
+            tooltip="Cidade e estado de chegada"
+            {...register('destination')}
+            error={errors.destination?.message}
+            icon={<MapPin className="w-4 h-4" />}
+          />
         </div>
+
+        {isInternational && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 p-6 bg-brand/5 border border-brand/20 rounded-2xl animate-in zoom-in-95 duration-300">
+            <Input
+              label="Passaporte"
+              placeholder="Número do documento"
+              tooltip="Número do passaporte válido para viagens internacionais"
+              {...register('passport_number')}
+              error={errors.passport_number?.message}
+              icon={<Globe className="w-4 h-4" />}
+            />
+            <Input
+              label="País de Destino"
+              placeholder="Ex: Estados Unidos"
+              tooltip="País de destino para conferência de visto e vacinas"
+              {...register('destination_country')}
+              error={errors.destination_country?.message}
+              icon={<Globe className="w-4 h-4" />}
+            />
+            <div className="flex items-center gap-4 col-span-full border-t border-brand/10 pt-4 mt-2">
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" {...register('visa_required')} className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-brand transition-colors">Visto Obrigatório?</span>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" {...register('travel_insurance')} className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-brand transition-colors">Seguro Viagem Incluso</span>
+              </label>
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Data de Partida</label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                type="date"
-                {...register('departure_date')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand outline-none transition-all"
-              />
-            </div>
-            {errors.departure_date && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.departure_date.message}</p>}
-          </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Data de Retorno</label>
-            <div className="relative">
-              <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600" />
-              <input
-                type="date"
-                {...register('return_date')}
-                className="w-full bg-slate-950 border-2 border-surface-border rounded-2xl p-4 pl-12 text-sm text-white focus:border-brand outline-none transition-all"
-              />
-            </div>
-            {errors.return_date && <p className="text-[10px] font-bold text-rose-500 ml-1">{errors.return_date.message}</p>}
-          </div>
+          <Input
+            label="Data de Partida"
+            type="date"
+            tooltip="Data prevista para o início do deslocamento"
+            {...register('departure_date')}
+            error={errors.departure_date?.message}
+            icon={<CalendarIcon className="w-4 h-4" />}
+          />
+          <Input
+            label="Data de Retorno"
+            type="date"
+            tooltip="Data prevista para o retorno à base"
+            {...register('return_date')}
+            error={errors.return_date?.message}
+            icon={<CalendarIcon className="w-4 h-4" />}
+          />
         </div>
 
-        <TransportSelector register={register} activeMode={transportMode} />
-        
+        <TransportSelector register={register} selected={transportMode} />
+
         {daysUntilDeparture <= 5 && (
-          <UrgencyJustificationCard register={register} errors={errors} />
+          <UrgencyJustificationCard days={daysUntilDeparture} register={register} errors={errors} />
         )}
       </div>
 

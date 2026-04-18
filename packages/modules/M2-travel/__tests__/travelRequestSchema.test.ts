@@ -40,7 +40,7 @@ describe('travelRequestSchema (M2)', () => {
       ...base,
       is_international: true,
       destination_country: 'Argentina',
-      passport_number: 'BR123456',
+      passport_number: 'BR1234567',
       visa_required: false,
       travel_insurance: true,
     });

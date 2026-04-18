@@ -334,6 +334,9 @@ export const maintenanceRequestSchema = z.object({
   }
 });
 
+export type MaintenanceRequestInput = z.infer<typeof maintenanceRequestSchema>;
+
+
 // --- Módulo de Frete (M5) ---
 
 export const freightRequestSchema = z.object({
@@ -375,55 +378,6 @@ export const freightAttestationSchema = z.object({
 
 export type FreightQuotationInput = z.infer<typeof freightQuotationSchema>;
 export type FreightAttestationInput = z.infer<typeof freightAttestationSchema>;
-
-// --- Módulo de Recebimento (Receiving) ---
-
-export const physicalReceivedItemSchema = z.object({
-  purchase_order_item_id: z.string(),
-  description: z.string(),
-  quantity_purchased: z.number(),
-  quantity_received: z.number().min(0, "Quantidade não pode ser negativa"),
-  condition: z.enum(['ok', 'damaged', 'missing']),
-  divergence_reason: z.string().optional()
-});
-
-export const receivingSchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("physical"),
-    received_by: z.string().min(3, "Identificação do recebedor obrigatória"),
-    notes: z.string().optional(),
-    items: z.array(physicalReceivedItemSchema).min(1, "Identifique os itens recebidos")
-  }),
-  z.object({
-    type: z.literal("digital"),
-    received_by: z.string().min(3, "Identificação obrigatória"),
-    execution_confirmed: z.boolean().refine(val => val === true, "Você deve confirmar a execução para liberar"),
-    notes: z.string().min(10, "Atestado exige uma breve descrição da execução")
-  })
-]);
-
-export type ReceivingInput = z.infer<typeof receivingSchema>;
-
-// --- Módulo de Equipamentos (M6) ---
-
-export const equipmentReturnSchema = z.object({
-  condition_on_return: z.enum(['ok', 'damaged', 'lost']),
-  late_return_days: z.number().min(0, "Dias de atraso não podem ser negativos").default(0),
-  damage_notes: z.string().optional(),
-}).superRefine((data, ctx) => {
-  if ((data.condition_on_return === 'damaged' || data.condition_on_return === 'lost') && (!data.damage_notes || data.damage_notes.length < 10)) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Notas de dano/perda são obrigatórias (mín 10 carac.)",
-      path: ["damage_notes"]
-    });
-  }
-});
-
-export type EquipmentReturnInput = z.infer<typeof equipmentReturnSchema>;
-
-
-
 
 // --- Módulo de Equipamentos (M6) ---
 
