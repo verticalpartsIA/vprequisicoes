@@ -11,7 +11,11 @@ import {
   AlertCircle,
   FileText,
   DollarSign,
-  Loader2
+  Loader2,
+  Truck,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Weight
 } from 'lucide-react';
 
 import { mockApiClient } from '@/lib/api/client.mock';
@@ -93,6 +97,28 @@ export default function DashboardPage() {
           inverse
         />
       </div>
+
+      {/* M5 Specific KPIs */}
+      {searchParams.get('module') === 'M5' && data.kpis.m5_stats && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-in slide-in-from-top-4 duration-500">
+          <KPICard 
+            label="Inbound (Entrada)" 
+            value={data.kpis.m5_stats.inbound_volume} 
+            icon={<ArrowDownLeft className="w-6 h-6 text-brand" />}
+          />
+          <KPICard 
+            label="Outbound (Saída)" 
+            value={data.kpis.m5_stats.outbound_volume} 
+            icon={<ArrowUpRight className="w-6 h-6 text-brand" />}
+          />
+          <KPICard 
+            label="Peso Total Transportado" 
+            value={data.kpis.m5_stats.total_weight_kg.toLocaleString('pt-BR')} 
+            suffix="kg"
+            icon={<Weight className="w-6 h-6 text-brand" />}
+          />
+        </div>
+      )}
 
       {/* Charts Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
