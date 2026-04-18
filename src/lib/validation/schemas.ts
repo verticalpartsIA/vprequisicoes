@@ -6,18 +6,33 @@ export const loginSchema = z.object({
 });
 
 export const productItemSchema = z.object({
-  nome: z.string().min(2, "Nome do produto é obrigatório"),
-  quantidade: z.number().min(1, "Quantidade deve ser maior que 0"),
+  nome: z.string({
+    required_error: "Nome do produto é obrigatório",
+    invalid_type_error: "Nome do produto deve ser texto",
+  }).min(1, "Nome do produto é obrigatório"),
+  quantidade: z.number({
+    required_error: "Quantidade é obrigatória",
+    invalid_type_error: "Quantidade deve ser um número",
+  }).min(1, "Quantidade deve ser maior que 0"),
   especificacao: z.string().optional(),
 });
 
 export const productRequestSchema = z.object({
-  solicitante: z.string().min(1, "Solicitante é obrigatório"),
-  justificativa: z.string().min(10, "A justificativa deve ter no mínimo de 10 caracteres"),
-  itens: z.array(productItemSchema).min(1, "Adicione pelo menos um produto"),
-  // Campos técnicos mantidos ou absorvidos
-  departamento: z.string().optional(),
-  centroCusto: z.string().optional(),
+  solicitante: z.string({
+    required_error: "Solicitante é obrigatório",
+  }).min(1, "Solicitante é obrigatório"),
+  justificativa: z.string({
+    required_error: "Justificativa é obrigatória",
+  }).min(10, "A justificativa deve ter no mínimo de 10 caracteres"),
+  itens: z.array(productItemSchema, {
+    required_error: "Adicione pelo menos um produto",
+  }).min(1, "Adicione pelo menos um produto"),
+  departamento: z.string({
+    required_error: "Departamento obrigatório",
+  }).optional().or(z.literal('')),
+  centroCusto: z.string({
+    required_error: "Centro de custo é obrigatório",
+  }).optional().or(z.literal('')),
 });
 
 export type ProductRequestInput = z.infer<typeof productRequestSchema>;
@@ -263,6 +278,44 @@ export const maintenanceRequestSchema = z.object({
   }
 });
 
-export type MaintenanceRequestInput = z.infer<typeof maintenanceRequestSchema>;
+// --- Módulo de Frete (M5) ---
 
+export const freightRequestSchema = z.object({
+  direction: z.enum(['inbound', 'outbound']),
+  origin: z.string().min(3, "Origem obrigatória"),
+  destination: z.string().min(3, "Destino obrigatório"),
+  cargo_type: z.string().min(1, "Selecione o tipo de carga"),
+  weight_kg: z.number().positive("Peso deve ser positivo").optional().or(z.literal(0)),
+  dimensions: z.string().optional(),
+  justification: z.string().min(20, "Justificativa deve ter pelo menos 20 caracteres"),
+  desired_date: z.string().min(1, "Data desejada obrigatória"),
+}).superRefine((data, ctx) => {
+  if (data.origin.trim().toLowerCase() === data.destination.trim().toLowerCase()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Origem e destino não podem ser iguais",
+      path: ["destination"]
+    });
+  }
+});
 
+export type FreightRequestInput = z.infer<typeof freightRequestSchema>;
+
+// --- M5 INTEGRAÇÕES ---
+
+export const freightQuotationSchema = z.object({
+  carrier: z.string().min(2, "Transportadora obrigatória"),
+  price: z.number().positive("Valor deve ser positivo"),
+  estimated_delivery_days: z.number().int().min(1, "Prazo mínimo 1 dia"),
+  tracking_code: z.string().optional()
+});
+
+export const freightAttestationSchema = z.object({
+  pickup_confirmed: z.boolean().refine(val => val === true, "Confirme a coleta"),
+  delivery_confirmed: z.boolean().refine(val => val === true, "Confirme a entrega"),
+  actual_delivery_date: z.string().min(1, "Data de entrega obrigatória"),
+  notes: z.string().optional()
+});
+
+export type FreightQuotationInput = z.infer<typeof freightQuotationSchema>;
+export type FreightAttestationInput = z.infer<typeof freightAttestationSchema>;
