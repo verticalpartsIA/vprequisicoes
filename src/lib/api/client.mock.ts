@@ -8,6 +8,8 @@ import { mockTravelRequestHandler } from './mock/travel-handlers';
 import { servicesHandlers } from './mock/services-handlers';
 import { maintenanceHandlers } from './mock/maintenance-handlers';
 
+import { mockFreightRequestHandler } from './mock/freight-handlers';
+
 const USE_MOCK = true; // Forçado para desenvolvimento SDD
 
 import { mockTicketList } from '@core/db/mock-db';
@@ -97,6 +99,10 @@ export const mockApiClient = {
     if (path === '/api/requests/maintenance') {
       const res = await maintenanceHandlers.create(body);
       return { status: 'success', data: res.data };
+    }
+
+    if (path === '/api/requests/freight') {
+      return mockFreightRequestHandler(body);
     }
 
     if (path.includes('/api/requests/products')) {

@@ -263,6 +263,27 @@ export const maintenanceRequestSchema = z.object({
   }
 });
 
-export type MaintenanceRequestInput = z.infer<typeof maintenanceRequestSchema>;
+// --- Módulo de Frete (M5) ---
+
+export const freightRequestSchema = z.object({
+  direction: z.enum(['inbound', 'outbound']),
+  origin: z.string().min(3, "Origem obrigatória"),
+  destination: z.string().min(3, "Destino obrigatório"),
+  cargo_type: z.string().min(1, "Selecione o tipo de carga"),
+  weight_kg: z.number().positive("Peso deve ser positivo").optional().or(z.literal(0)),
+  dimensions: z.string().optional(),
+  justification: z.string().min(20, "Justificativa deve ter pelo menos 20 caracteres"),
+  desired_date: z.string().min(1, "Data desejada obrigatória"),
+}).superRefine((data, ctx) => {
+  if (data.origin.trim().toLowerCase() === data.destination.trim().toLowerCase()) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Origem e destino não podem ser iguais",
+      path: ["destination"]
+    });
+  }
+});
+
+export type FreightRequestInput = z.infer<typeof freightRequestSchema>;
 
 
