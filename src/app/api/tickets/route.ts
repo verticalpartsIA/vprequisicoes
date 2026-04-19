@@ -114,7 +114,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Inserir ticket
-    const metadata = { departamento, centroCusto, ...restMeta };
+    const metadata: Record<string, unknown> = { departamento, centroCusto, ...restMeta };
     const { data: ticket, error: ticketError } = await admin
       .from('req_tickets')
       .insert({
