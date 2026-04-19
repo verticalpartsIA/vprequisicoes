@@ -7,7 +7,7 @@
  */
 import { NextRequest, NextResponse } from 'next/server';
 import { getSupabaseServer, getSupabaseAdmin } from '@/lib/supabase/server';
-import type { Database } from '@/lib/supabase/types';
+import type { Database, Json } from '@/lib/supabase/types';
 
 type ModuleType  = Database['public']['Enums']['req_module_type'];
 type StatusType  = Database['public']['Enums']['req_ticket_status'];
@@ -114,20 +114,23 @@ export async function POST(request: NextRequest) {
     }
 
     // 5. Inserir ticket
-    const metadata: Record<string, unknown> = { departamento, centroCusto, ...restMeta };
+    // metaObj para leitura de propriedades dinâmicas; metaJson para o banco
+    const metaObj: Record<string, unknown> = { departamento, centroCusto, ...restMeta };
+    const metaJson = metaObj as Json;
+
     const { data: ticket, error: ticketError } = await admin
       .from('req_tickets')
       .insert({
         module,
-        title: generateTitle(module, metadata),
+        title: generateTitle(module, metaObj),
         requester_id: user.id,
         department_id: departmentId,
         ticket_number: ticketNumber as string,
         status: 'SUBMITTED' as StatusType,
-        metadata,
-        priority: resolvePriority(module, metadata),
+        metadata: metaJson,
+        priority: resolvePriority(module, metaObj),
         submitted_at: new Date().toISOString(),
-        description: (metadata.justificativa as string) ?? null,
+        description: (metaObj.justificativa as string) ?? null,
       })
       .select()
       .single();
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
 
     // 6. Itens (M1 — Produtos)
     if (module === 'M1_PRODUTOS') {
-      const itens = (metadata.itens as any[]) ?? [];
+      const itens = (metaObj.itens as any[]) ?? [];
       if (itens.length > 0) {
         await admin.from('req_ticket_items').insert(
           itens.map((item, i) => ({
