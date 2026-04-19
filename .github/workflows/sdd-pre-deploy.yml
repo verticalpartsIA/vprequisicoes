@@ -66,7 +66,7 @@ jobs:
           cache: npm
       - run: npm ci --legacy-peer-deps
       - name: "BASE_001 — Schema inspection + enum validation"
-        run: npx vitest run tests/sdd/BASE_001_schema-inspection.integration.test.ts --reporter=verbose
+        run: npx vitest run tests/sdd/BASE_001_schema-inspection.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -138,7 +138,7 @@ jobs:
           echo "App pronto."
 
       - name: "MEIO_001 — API integration + Supabase flow"
-        run: npx vitest run tests/sdd/MEIO_001_api-integration.integration.test.ts --reporter=verbose
+        run: npx vitest run tests/sdd/MEIO_001_api-integration.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
@@ -152,7 +152,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: "MEIO — Supabase flow completo M1→RELEASED"
-        run: npx vitest run packages/core/db/__tests__/supabase-flow.integration.test.ts --reporter=verbose
+        run: npx vitest run packages/core/db/__tests__/supabase-flow.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
