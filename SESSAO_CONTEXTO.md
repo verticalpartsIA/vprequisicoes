@@ -71,9 +71,31 @@ SDD pipeline run `24641602829` (commit `4e46959`):
 - ✅ **MEIO Integration** (passou!)
 - 🔄 TOPO E2E (estava rodando quando essa sessão acabou)
 
-**Se TOPO passou → DEPLOY rodou automaticamente via SSH no VPS.**
+**TOPO FALHOU → DEPLOY NÃO RODOU. App ainda não está no VPS.**
 
-Verificar: `gh run list --repo verticalpartsIA/vprequisicoes --limit 3`
+TOPO falha porque os testes `@workflow` precisam de `TEST_REQUESTER_EMAIL`/`TEST_REQUESTER_PASSWORD`
+e a URL `requisicoes.vpsistema.com` ainda não está no ar.
+
+**Às 23h: fazer deploy manual via SSH primeiro, depois criar as rotas reais.**
+
+Deploy manual no VPS:
+```bash
+ssh root@72.61.48.156
+mkdir -p /docker/vprequisicoes
+git clone https://github.com/verticalpartsIA/vprequisicoes.git /docker/vprequisicoes/repo
+cd /docker/vprequisicoes
+cat > .env << EOF
+NEXT_PUBLIC_SUPABASE_URL=https://jsnnjsjnqqcqynjncmvz.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzbm5qc2pucXFjcXluam5jbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NDcxMDUsImV4cCI6MjA5MjEyMzEwNX0.xzt0F0DHe9_H7lN4qT3vmiEHNIjUPJ3ulhUiD7fB9C0
+NEXT_PUBLIC_APP_URL=https://requisicoes.vpsistema.com
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzbm5qc2pucXFjcXluam5jbXZ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjU0NzEwNSwiZXhwIjoyMDkyMTIzMTA1fQ.peCHPjJdEwHrAZtcriMplSTx-JbQApB4pek0Vuxplc8
+NODE_ENV=production
+EOF
+cp repo/docker-compose.yml .
+docker compose build --no-cache
+docker compose up -d
+curl http://localhost:3000/api/health
+```
 
 ---
 
