@@ -27,9 +27,10 @@ export const getMockRequestHandler = async (id: string) => {
   await sleep(300);
   return {
     status: "success",
-    data: { 
-      id, 
-      status: "submitted", 
+    data: {
+      id: parseInt(id, 10),
+      status: "SUBMITTED",
+      type: "M1",
       module: "M1",
       history: [
         { status: 'DRAFT', date: '2026-04-16T10:00:00Z' },
