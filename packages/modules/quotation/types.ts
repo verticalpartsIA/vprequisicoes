@@ -1,3 +1,5 @@
+import { RequestStatus } from '../../core/types';
+
 export type QuotationStatus = 'draft' | 'submitted' | 'approved' | 'rejected';
 
 export interface QuotationSupplier {

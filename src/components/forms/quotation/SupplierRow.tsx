@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { UseFormReturn } from 'react-hook-form';
@@ -58,7 +58,7 @@ export const SupplierRow = ({ itemIndex, supplierIndex, onRemove, formMethods }:
           
           <Button
             type="button"
-            variant="danger"
+            variant="destructive"
             size="sm"
             onClick={onRemove}
             className="p-2 h-auto"
@@ -96,7 +96,7 @@ export const SupplierRow = ({ itemIndex, supplierIndex, onRemove, formMethods }:
         </div>
         <div className="md:col-span-12">
           <textarea
-            className="flex min-h-[60px] w-full rounded-md border border-surface-border bg-surface-bg px-3 py-2 text-xs text-slate-300 focus:outline-none focus:ring-1 focus:ring-brand"
+            className="flex min-h-[60px] w-full rounded-md border border-surface-border bg-surface-bg px-3 py-2 text-xs text-slate-600 focus:outline-none focus:ring-1 focus:ring-brand"
             placeholder="Observações do fornecedor (opcional)..."
             {...register(`items.${itemIndex}.suppliers.${supplierIndex}.observations`)}
           />

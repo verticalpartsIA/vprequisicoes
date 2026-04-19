@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -64,7 +64,7 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
     setValue('supplier_name', result.winning_supplier);
     setValue('supplier_id', result.winning_supplier);
     setValue('total_amount', result.final_price);
-    
+
     // Atualizar preços dos itens proporcionalmente
     const ratio = result.final_price / defaultAmount;
     const updatedItems = watchedItems.map(item => ({
@@ -90,10 +90,10 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
     try {
       const endpoint = data.method === 'auction' ? `/api/purchasing/tickets/${ticket.id}/auction` : `/api/purchasing/tickets/${ticket.id}/direct`;
       const res: any = await mockApiClient.post(endpoint, { ...data, oc_number: ocNumber });
-      
+
       setToast({ type: 'success', message: `Pedido de Compra ${res.data.oc_number} emitido com sucesso!` });
       setTimeout(() => router.push('/purchasing'), 2000);
-      
+
     } catch (error: any) {
       setToast({ type: 'error', message: error.message || 'Erro ao emitir OC.' });
     } finally {
@@ -115,23 +115,23 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
     <div className="grid grid-cols-1 xl:grid-cols-2 gap-10">
       <div className="space-y-8">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
-          <section className="p-8 bg-surface-card border border-surface-border rounded-3xl shadow-xl space-y-8">
+          <section className="p-8 bg-surface-card border border-surface-border rounded-2xl shadow-md space-y-8">
              <div className="flex items-center gap-3 mb-2">
                 <Gavel className="w-5 h-5 text-brand" />
-                <h3 className="text-lg font-bold text-white">Configuração da Compra</h3>
+                <h3 className="text-lg font-bold text-slate-900">Configuração da Compra</h3>
              </div>
 
-             <PurchaseMethodSelector 
-               amount={defaultAmount} 
-               method={selectedMethod} 
-               onChange={(m) => setValue('method', m)} 
+             <PurchaseMethodSelector
+               amount={defaultAmount}
+               method={selectedMethod}
+               onChange={(m) => setValue('method', m)}
              />
 
              {selectedMethod === 'direct' && (
                 <div className="p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-xl flex items-start gap-4 animate-in fade-in slide-in-from-top-2">
                   <FileCheck className="w-5 h-5 text-emerald-500 mt-1" />
                   <div>
-                    <p className="text-xs font-bold text-slate-200 mb-1 uppercase tracking-tight">Compra Direta Ativada</p>
+                    <p className="text-xs font-bold text-slate-700 mb-1 uppercase tracking-tight">Compra Direta Ativada</p>
                     <p className="text-[10px] text-slate-500 leading-relaxed">
                       Utilizando o fornecedor vencedor da cotação: <span className="text-emerald-500 font-bold">{winningQuotation?.name}</span>.
                       Esta opção é recomendada para agilizar o recebimento.
@@ -140,12 +140,12 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
                 </div>
              )}
 
-             <div className="space-y-4 pt-4 border-t border-surface-border/50">
+             <div className="space-y-4 pt-4 border-t border-surface-border">
                 <div>
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Condição de Pagamento</label>
-                  <select 
+                  <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest block mb-2">Condição de Pagamento</label>
+                  <select
                     {...register('payment_terms')}
-                    className="w-full bg-slate-950 border border-surface-border rounded-xl px-4 py-3 text-sm text-slate-300 focus:ring-2 focus:ring-brand outline-none"
+                    className="w-full bg-white border border-surface-border rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-brand outline-none"
                   >
                     {PAYMENT_TERMS_OPTIONS.map(opt => (
                       <option key={opt.value} value={opt.label}>{opt.label}</option>
@@ -154,10 +154,10 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
                 </div>
 
                 <div>
-                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest block mb-2">Local de Entrega</label>
-                   <textarea 
+                   <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest block mb-2">Local de Entrega</label>
+                   <textarea
                      {...register('delivery_address')}
-                     className={`w-full bg-slate-950 border ${errors.delivery_address ? 'border-rose-500' : 'border-surface-border'} rounded-xl px-4 py-3 text-sm text-slate-300 focus:ring-2 focus:ring-brand outline-none min-h-[80px]`}
+                     className={`w-full bg-white border ${errors.delivery_address ? 'border-rose-500' : 'border-surface-border'} rounded-xl px-4 py-3 text-sm text-slate-700 focus:ring-2 focus:ring-brand outline-none min-h-[80px]`}
                    />
                    {errors.delivery_address && <p className="text-[10px] text-rose-500 font-bold mt-1 uppercase">{errors.delivery_address.message}</p>}
                 </div>
@@ -167,7 +167,7 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
           <Button
             type="submit"
             loading={isLoading || isAuctionRunning}
-            className={`w-full py-8 text-xl font-black uppercase tracking-[0.2em] shadow-2xl transition-all ${
+            className={`w-full py-8 text-xl font-black uppercase tracking-[0.2em] shadow-md transition-all ${
               selectedMethod === 'auction' && watchedTotal === defaultAmount
                 ? 'bg-amber-600 hover:bg-amber-700 shadow-amber-900/30'
                 : 'bg-brand hover:bg-brand-hover shadow-brand/30'
@@ -187,13 +187,13 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
           </Button>
 
           {isAuctionRunning && (
-            <AuctionProgress 
-              initialPrice={defaultAmount} 
-              onComplete={onAuctionComplete} 
+            <AuctionProgress
+              initialPrice={defaultAmount}
+              onComplete={onAuctionComplete}
             />
           )}
 
-          <div className="p-4 bg-slate-900/40 border border-surface-border/50 rounded-xl flex items-center gap-3">
+          <div className="p-4 bg-slate-50 border border-surface-border rounded-xl flex items-center gap-3">
              <AlertTriangle className="w-5 h-5 text-slate-500" />
              <p className="text-[10px] text-slate-500 font-medium">Ao confirmar, o status da requisição mudará para <span className="text-brand font-bold italic">PURCHASED</span> e o almoxarifado será notificado.</p>
           </div>
@@ -205,10 +205,10 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
       </div>
 
       {toast && (
-        <Toast 
-          type={toast.type} 
-          message={toast.message} 
-          onClose={() => setToast(null)} 
+        <Toast
+          type={toast.type}
+          message={toast.message}
+          onClose={() => setToast(null)}
         />
       )}
     </div>

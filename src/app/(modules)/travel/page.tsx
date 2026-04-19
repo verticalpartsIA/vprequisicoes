@@ -3,54 +3,63 @@
 import React from 'react';
 import { Plane, Info, ShieldCheck } from 'lucide-react';
 import { TravelRequestForm } from '@/components/forms/M2/TravelRequestForm';
+import { PageFooterTutorial } from "@/components/layout/PageFooterTutorial";
 
 export default function TravelPage() {
   return (
-    <div className="container mx-auto py-12 px-4 max-w-5xl animate-in fade-in duration-1000">
-      
-      {/* HEADER ESTRATÉGICO */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+    <div className="container mx-auto py-10 px-4 max-w-5xl animate-in fade-in duration-700">
+
+      {/* HEADER */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
         <div className="space-y-2">
           <div className="flex items-center gap-3">
-             <div className="px-3 py-1 bg-brand/10 border border-brand/20 rounded-full">
-                <span className="text-[10px] font-black text-brand uppercase tracking-widest">Módulo M2</span>
-             </div>
-             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">• VerticalParts Travel</span>
+            <div className="px-3 py-1 bg-brand/10 border border-brand/20 rounded-full">
+              <span className="text-[10px] font-bold text-brand uppercase tracking-widest">Módulo M2</span>
+            </div>
+            <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">VerticalParts Travel</span>
           </div>
-          <h1 className="text-5xl font-black text-white tracking-tighter uppercase italic leading-none">
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
             Requisição de <span className="text-brand">Viagem</span>
           </h1>
-          <p className="text-slate-500 font-medium tracking-tight max-w-xl">
+          <p className="text-slate-500 text-sm max-w-xl">
             Gestão de deslocamento corporativo, hospedagem e logística. Suas solicitações passam por cotação competitiva automática.
           </p>
         </div>
 
-        <div className="hidden lg:flex flex-col items-end text-right space-y-2">
-           <div className="p-4 bg-slate-900/50 backdrop-blur-md border border-surface-border rounded-2xl flex items-center gap-4">
-              <div className="space-y-1">
-                 <p className="text-[10px] font-black text-slate-300 uppercase tracking-tighter italic">Compliance Ativo</p>
-                 <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest">SLA de Cotação: 24h</p>
-              </div>
-              <ShieldCheck className="w-8 h-8 text-brand" />
-           </div>
+        <div className="hidden lg:flex flex-col items-end text-right">
+          <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center gap-4 shadow-sm">
+            <div className="space-y-1">
+              <p className="text-xs font-semibold text-slate-700">Compliance Ativo</p>
+              <p className="text-[10px] text-slate-400 uppercase font-bold tracking-widest">SLA de Cotação: 24h</p>
+            </div>
+            <ShieldCheck className="w-7 h-7 text-brand" />
+          </div>
         </div>
       </div>
 
       {/* ALERTA DE POLÍTICA */}
-      <div className="mb-10 p-4 bg-slate-950 border-l-4 border-brand rounded-r-2xl flex items-center gap-4 shadow-xl">
+      <div className="mb-8 p-4 bg-amber-50 border-l-4 border-brand rounded-r-xl flex items-center gap-4">
         <Info className="w-5 h-5 text-brand shrink-0" />
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wide leading-relaxed">
-          Lembre-se: Viagens com menos de <span className="text-white">5 dias de antecedência</span> exigem justificativa mandatória para a diretoria. 
+        <p className="text-xs font-medium text-slate-600 leading-relaxed">
+          Viagens com menos de <span className="font-bold text-slate-900">5 dias de antecedência</span> exigem justificativa mandatória para a diretoria.
           Certifique-se de que seu destino possua cobertura do seguro corporativo.
         </p>
       </div>
 
       <TravelRequestForm />
 
-      {/* FOOTER INFORMATIVO */}
-      <div className="mt-20 border-t border-surface-border/30 pt-10 text-center space-y-4 pb-20">
-         <Plane className="w-10 h-10 text-slate-800 mx-auto opacity-30" />
-         <p className="text-[10px] font-black text-slate-700 uppercase tracking-[0.4em]">VerticalParts • Procurement Engine v2</p>
+      <PageFooterTutorial
+        steps={[
+          "Informe origem/destino",
+          "Escolha as datas",
+          "Defina transporte/hospedagem",
+          "Solicite reserva"
+        ]}
+      />
+
+      <div className="mt-16 border-t border-slate-200 pt-8 text-center pb-16">
+        <Plane className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">VerticalParts • Procurement Engine v2</p>
       </div>
     </div>
   );

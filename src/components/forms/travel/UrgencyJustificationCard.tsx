@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { AlertTriangle, MessageSquareQuote } from 'lucide-react';
@@ -16,9 +16,9 @@ export const UrgencyJustificationCard = ({ days, register, errors, watchValue = 
   if (daysNum > 5) return null;
 
   return (
-    <div 
+    <div
       id="urgency-card"
-      className="p-8 bg-rose-500/5 border border-rose-500/20 rounded-3xl space-y-6 animate-in slide-in-from-top-4 duration-500 shadow-xl shadow-rose-500/5"
+      className="p-8 bg-rose-500/5 border border-rose-500/20 rounded-2xl space-y-6 animate-in slide-in-from-top-4 duration-500 shadow-xl shadow-rose-500/5"
     >
       <div className="flex items-start gap-4">
         <div className="p-3 bg-rose-500/10 rounded-2xl text-rose-500">
@@ -26,8 +26,8 @@ export const UrgencyJustificationCard = ({ days, register, errors, watchValue = 
         </div>
         <div>
           <h3 className="text-sm font-black text-rose-500 uppercase tracking-widest mb-1 italic">Solicitação em Caráter de Urgência</h3>
-          <p className="text-xs text-slate-400 font-medium leading-relaxed">
-            Esta viagem está planejada para daqui a <span className="text-white font-bold">{isNaN(daysNum) ? 'poucos' : daysNum} dias</span>. 
+          <p className="text-xs text-slate-700 font-medium leading-relaxed">
+            Esta viagem está planejada para daqui a <span className="text-slate-900 font-bold">{isNaN(daysNum) ? 'poucos' : daysNum} dias</span>.
             Políticas corporativas exigem uma justificativa detalhada para aprovação imediata pela diretoria.
           </p>
         </div>
@@ -40,7 +40,7 @@ export const UrgencyJustificationCard = ({ days, register, errors, watchValue = 
         <textarea
           {...register('urgency_justification')}
           placeholder="Descreva o motivo da urgência, impacto no negócio e por que não pôde ser planejado com antecedência..."
-          className={`w-full bg-slate-950 border-2 rounded-2xl p-4 pl-12 h-32 text-xs text-white placeholder:text-slate-700 outline-none transition-all focus:ring-4 ${
+          className={`w-full bg-white border-2 rounded-2xl p-4 pl-12 h-32 text-xs text-slate-900 placeholder:text-slate-400 outline-none transition-all focus:ring-4 ${
             errors.urgency_justification ? 'border-rose-500/50 focus:ring-rose-500/10' : 'border-surface-border focus:border-brand focus:ring-brand/10'
           }`}
         />

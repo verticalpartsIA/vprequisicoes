@@ -16,16 +16,16 @@ export const KPICard = ({ label, value, delta, icon, suffix, inverse = false }: 
   const isPositive = delta && delta > 0;
   
   return (
-    <div className="p-6 bg-surface-card border border-surface-border rounded-3xl shadow-xl hover:border-brand/30 transition-all group animate-in slide-in-from-bottom-2 duration-500">
+    <div className="p-6 bg-surface-card border border-surface-border rounded-2xl shadow-sm hover:shadow-md hover:border-brand/30 transition-all group">
       <div className="flex items-center justify-between mb-4">
-        <div className="p-3 bg-brand/5 rounded-2xl border border-brand/20 group-hover:bg-brand/10 transition-colors">
+        <div className="p-2.5 bg-brand/10 rounded-xl border border-brand/20 group-hover:bg-brand/20 transition-colors">
           {icon}
         </div>
         {delta !== undefined && (
-          <div className={`flex items-center gap-1 px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest ${
-            isPositive 
-              ? (inverse ? 'bg-rose-500/10 text-rose-500' : 'bg-emerald-500/10 text-emerald-500')
-              : (inverse ? 'bg-emerald-500/10 text-emerald-500' : 'bg-rose-500/10 text-rose-500')
+          <div className={`flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold ${
+            isPositive
+              ? (inverse ? 'bg-red-50 text-red-600' : 'bg-emerald-50 text-emerald-700')
+              : (inverse ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-600')
           }`}>
             {isPositive ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
             {Math.abs(delta)}%
@@ -33,12 +33,12 @@ export const KPICard = ({ label, value, delta, icon, suffix, inverse = false }: 
         )}
       </div>
 
-      <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">{label}</h3>
+      <h3 className="text-[11px] font-semibold text-slate-500 uppercase tracking-widest mb-1">{label}</h3>
       <div className="flex items-baseline gap-2">
-        <p className="text-3xl font-black text-white tracking-tighter italic">
+        <p className="text-2xl font-bold text-slate-900 tracking-tight">
           {typeof value === 'number' ? value.toLocaleString('pt-BR') : value}
         </p>
-        {suffix && <span className="text-sm font-bold text-slate-600">{suffix}</span>}
+        {suffix && <span className="text-sm font-medium text-slate-500">{suffix}</span>}
       </div>
     </div>
   );

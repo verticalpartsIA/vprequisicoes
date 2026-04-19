@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -49,7 +49,7 @@ export default function ApprovalDetailPage() {
   if (!ticket) {
     return (
       <div className="container mx-auto py-20 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">Ticket não encontrado</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">Ticket não encontrado</h2>
         <Button onClick={() => router.push('/approval')}>Voltar para lista</Button>
       </div>
     );
@@ -57,7 +57,7 @@ export default function ApprovalDetailPage() {
 
   return (
     <div className="container mx-auto py-10 space-y-8 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-surface-border/50">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-surface-border">
         <div className="space-y-4">
           <button 
             onClick={() => router.push('/approval')}
@@ -67,12 +67,12 @@ export default function ApprovalDetailPage() {
             Volar ao Console
           </button>
           <div className="flex items-center space-x-6">
-            <div className="p-4 bg-brand/5 rounded-2xl border border-brand/20 shadow-2xl shadow-brand/10">
+            <div className="p-4 bg-brand/5 rounded-2xl border border-brand/20 shadow-md shadow-brand/10">
               <ShieldCheck className="w-10 h-10 text-brand" />
             </div>
             <div>
               <div className="flex items-center space-x-4 mb-2">
-                <span className="text-4xl font-black text-white tracking-tighter uppercase">Análise #{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                <span className="text-xl font-bold text-slate-900">Análise #{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
                 <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black rounded border border-amber-500/20 uppercase tracking-widest shadow-lg shadow-amber-900/10">
                   {ticket.status}
                 </span>
@@ -110,20 +110,20 @@ export default function ApprovalDetailPage() {
               <ClipboardList className="w-4 h-4 mr-3 text-brand" />
               Contexto da Requisição
             </h4>
-            <div className="p-8 bg-slate-900/30 rounded-3xl border border-surface-border/60 shadow-xl backdrop-blur-sm">
+            <div className="p-8 bg-slate-900/30 rounded-2xl border border-surface-border shadow-xl backdrop-blur-sm">
               <div className="space-y-8">
                 <div>
                   <label className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-3">Justificativa Estratégica</label>
-                  <p className="text-lg text-slate-300 italic font-medium leading-relaxed bg-brand/5 p-4 rounded-xl border-l-4 border-brand">
+                  <p className="text-lg text-slate-600 italic font-medium leading-relaxed bg-brand/5 p-4 rounded-xl border-l-4 border-brand">
                     "{ticket.details?.justificativa}"
                   </p>
                 </div>
                 
-                <div className="p-6 bg-slate-950/50 rounded-2xl border border-surface-border/50">
-                  <label className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-4 border-b border-surface-border/30 pb-2">Detalhamento dos Itens Originais</label>
+                <div className="p-6 bg-white/50 rounded-2xl border border-surface-border">
+                  <label className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-4 border-b border-surface-border pb-2">Detalhamento dos Itens Originais</label>
                   <div className="space-y-3">
                     {ticket.details?.itens?.map((item: any, i: number) => (
-                      <div key={i} className="flex justify-between items-center p-3 bg-slate-900/50 rounded-xl border border-slate-800 transition-all hover:border-slate-700">
+                      <div key={i} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 transition-all hover:border-slate-300">
                         <span className="text-sm font-bold text-slate-200">{item.nome}</span>
                         <div className="flex items-center gap-4">
                            {item.especificacao && <span className="text-[10px] text-slate-500 italic max-w-xs truncate">{item.especificacao}</span>}
@@ -155,7 +155,7 @@ export default function ApprovalDetailPage() {
                 <History className="w-4 h-4 mr-3 text-brand" />
                 Histórico e Auditoria
               </h4>
-              <div className="p-8 bg-slate-900/20 rounded-3xl border border-surface-border/40 backdrop-blur-md min-h-[500px] shadow-2xl">
+              <div className="p-8 bg-slate-900/20 rounded-2xl border border-surface-border backdrop-blur-md min-h-[500px] shadow-md">
                 <AuditTimeline logs={auditLogs} />
               </div>
             </section>

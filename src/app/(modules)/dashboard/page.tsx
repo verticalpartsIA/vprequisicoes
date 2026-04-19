@@ -18,7 +18,7 @@ import {
   Weight
 } from 'lucide-react';
 
-import { mockApiClient } from '@/lib/api/client.mock';
+// Dashboard usa API real — sem mock em produção
 import { KPICard } from '@/components/dashboard/KPICard';
 import { BarChartNative } from '@/components/dashboard/charts/BarChartNative';
 import { LineChartNative } from '@/components/dashboard/charts/LineChartNative';
@@ -39,10 +39,13 @@ function DashboardContent() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const res: any = await mockApiClient.get('/api/dashboard/summary', { period, module });
-        setData(res.data);
+        const qs = new URLSearchParams({ period, module }).toString();
+        const res = await fetch(`/api/dashboard?${qs}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json);
       } catch (err) {
-        console.error(err);
+        console.error('[dashboard]', err);
       } finally {
         setIsLoading(false);
       }
@@ -63,8 +66,8 @@ function DashboardContent() {
     <div className="container mx-auto py-10 space-y-10 animate-in fade-in duration-700">
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
         <div className="space-y-2">
-          <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">Analytics & Business Intelligence</h1>
-          <p className="text-slate-500 font-medium tracking-tight">Visão executiva do ecossistema de suprimentos VerticalParts.</p>
+          <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Analytics & Business Intelligence</h1>
+          <p className="text-slate-500 font-medium">Visão executiva do ecossistema de suprimentos VerticalParts.</p>
         </div>
         <DashboardFilters />
       </div>
@@ -122,25 +125,25 @@ function DashboardContent() {
 
       {/* Charts Sections */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <Card className="lg:col-span-2 border-surface-border/60 bg-surface-card/30 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden p-8">
-          <CardHeader className="px-0 pt-0 pb-8 flex flex-row items-center justify-between">
+        <Card className="lg:col-span-2 p-6">
+          <CardHeader className="px-0 pt-0 pb-6 flex flex-row items-center justify-between">
             <div>
-              <CardTitle className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-brand-success" /> Histórico de Economia (Digital Auction)
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-emerald-600" /> Histórico de Economia (Digital Auction)
               </CardTitle>
             </div>
           </CardHeader>
           <CardContent className="px-0">
-             <div className="h-[250px] w-full mt-4">
+             <div className="h-[250px] w-full mt-2">
                 <LineChartNative data={data.savings_timeline} color="#10b981" />
              </div>
           </CardContent>
         </Card>
 
-        <Card className="border-surface-border/60 bg-surface-card/30 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden p-8">
-          <CardHeader className="px-0 pt-0 pb-10">
-            <CardTitle className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-              <PieChartIcon className="w-6 h-6 text-brand" /> Mix por Módulo
+        <Card className="p-6">
+          <CardHeader className="px-0 pt-0 pb-8">
+            <CardTitle className="flex items-center gap-2">
+              <PieChartIcon className="w-5 h-5 text-brand" /> Mix por Módulo
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0 flex justify-center">
@@ -150,10 +153,10 @@ function DashboardContent() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-         <Card className="border-surface-border/60 bg-surface-card/30 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden p-8">
-            <CardHeader className="px-0 pt-0 pb-8">
-               <CardTitle className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                  <CheckCircle className="w-6 h-6 text-brand" /> Distribuição por Status
+         <Card className="p-6">
+            <CardHeader className="px-0 pt-0 pb-6">
+               <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-brand" /> Distribuição por Status
                </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
@@ -161,12 +164,12 @@ function DashboardContent() {
             </CardContent>
          </Card>
 
-         <Card className="border-surface-border/60 bg-surface-card/30 backdrop-blur-xl shadow-2xl rounded-3xl overflow-hidden p-8">
-            <CardHeader className="px-0 pt-0 pb-8 flex flex-row items-center justify-between">
-               <CardTitle className="text-xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
-                  <BarChart3 className="w-6 h-6 text-brand" /> Top Performance Fornecedores
+         <Card className="p-6">
+            <CardHeader className="px-0 pt-0 pb-6 flex flex-row items-center justify-between">
+               <CardTitle className="flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-brand" /> Top Fornecedores
                </CardTitle>
-               <button className="text-[10px] font-black uppercase text-brand hover:underline tracking-widest">Ver Todos</button>
+               <button className="text-xs font-semibold text-brand hover:underline">Ver Todos</button>
             </CardHeader>
             <CardContent className="px-0">
                <TopSuppliersTable suppliers={data.top_suppliers} />

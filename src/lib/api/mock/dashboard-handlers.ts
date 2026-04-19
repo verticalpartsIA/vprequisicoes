@@ -10,12 +10,6 @@ export const mockDashboardDataHandler = (periodStr: string = '30d', moduleStr: s
     status_distribution: kpiCalculator.getStatusDistribution(period),
     module_distribution: kpiCalculator.getModuleDistribution(period),
     top_suppliers: kpiCalculator.getTopSuppliers(period),
-    savings_timeline: [
-      { label: '01/04', value: 1200 },
-      { label: '04/04', value: 2500 },
-      { label: '08/04', value: 1800 },
-      { label: '12/04', value: 4200 },
-      { label: '16/04', value: 3100 }
-    ]
+    savings_timeline: []
   };
 };

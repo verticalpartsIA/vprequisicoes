@@ -80,7 +80,7 @@ export const TravelRequestForm = () => {
     mockApiClient.post('/api/requests/travel', data)
       .then((res: any) => {
         toast.success(`Ticket ${res.data.ticket_number} gerado com sucesso!`, { id: toastId });
-        
+
         setTimeout(() => {
           router.push('/');
         }, 1500);
@@ -95,16 +95,16 @@ export const TravelRequestForm = () => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-     
+
       {/* SEÇÃO 1: PESSOAL */}
-      <div className="p-8 bg-surface-card border border-surface-border rounded-3xl shadow-2xl space-y-8">
-        <div className="flex items-center gap-4 border-b border-surface-border/30 pb-6">
+      <div className="p-8 bg-surface-card border border-surface-border rounded-2xl shadow-md space-y-8">
+        <div className="flex items-center gap-4 border-b border-surface-border pb-6">
           <div className="p-3 bg-brand/10 rounded-2xl text-brand">
             <User className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white uppercase tracking-tighter">Dados do Viajante</h2>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Identificação e Departamento</p>
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Dados do Viajante</h2>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Identificação e Departamento</p>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -126,21 +126,21 @@ export const TravelRequestForm = () => {
       </div>
 
       {/* SEÇÃO 2: LOGÍSTICA DE DESLOCAMENTO */}
-      <div className="p-8 bg-surface-card border border-surface-border rounded-3xl shadow-2xl space-y-8">
-        <div className="flex items-center justify-between border-b border-surface-border/30 pb-6">
+      <div className="p-8 bg-surface-card border border-surface-border rounded-2xl shadow-md space-y-8">
+        <div className="flex items-center justify-between border-b border-surface-border pb-6">
           <div className="flex items-center gap-4">
             <div className="p-3 bg-brand/10 rounded-2xl text-brand">
               <PlaneTakeoff className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-xl font-black text-white uppercase tracking-tighter">Detalhes da Viagem</h2>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Origem, Destino e Datas</p>
+              <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Detalhes da Viagem</h2>
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Origem, Destino e Datas</p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-2 bg-slate-900 px-4 py-2 rounded-xl border border-surface-border/30">
+          <div className="hidden md:flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-surface-border">
             <Globe className="w-4 h-4 text-slate-500" />
-            <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Internacional?</span>
-            <input type="checkbox" {...register('is_international')} className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
+            <span className="text-xs font-semibold text-slate-700 uppercase tracking-widest">Internacional?</span>
+            <input type="checkbox" {...register('is_international')} className="w-4 h-4 rounded border-slate-300 bg-slate-100 text-brand focus:ring-brand" />
           </div>
         </div>
 
@@ -183,12 +183,12 @@ export const TravelRequestForm = () => {
             />
             <div className="flex items-center gap-4 col-span-full border-t border-brand/10 pt-4 mt-2">
               <label className="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" {...register('visa_required')} className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-brand transition-colors">Visto Obrigatório?</span>
+                <input type="checkbox" {...register('visa_required')} className="w-5 h-5 rounded border-slate-300 bg-slate-100 text-brand focus:ring-brand" />
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest group-hover:text-brand transition-colors">Visto Obrigatório?</span>
               </label>
               <label className="flex items-center gap-3 cursor-pointer group">
-                <input type="checkbox" {...register('travel_insurance')} className="w-5 h-5 rounded border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
-                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover:text-brand transition-colors">Seguro Viagem Incluso</span>
+                <input type="checkbox" {...register('travel_insurance')} className="w-5 h-5 rounded border-slate-300 bg-slate-100 text-brand focus:ring-brand" />
+                <span className="text-xs font-semibold text-slate-500 uppercase tracking-widest group-hover:text-brand transition-colors">Seguro Viagem Incluso</span>
               </label>
             </div>
           </div>
@@ -221,54 +221,54 @@ export const TravelRequestForm = () => {
       </div>
 
       {/* SEÇÃO 3: ADD-ONS (Hotel, Carro) */}
-      <div className="p-8 bg-surface-card border border-surface-border rounded-3xl shadow-2xl space-y-8">
-        <div className="flex items-center gap-4 border-b border-surface-border/30 pb-6">
+      <div className="p-8 bg-surface-card border border-surface-border rounded-2xl shadow-md space-y-8">
+        <div className="flex items-center gap-4 border-b border-surface-border pb-6">
           <div className="p-3 bg-brand/10 rounded-2xl text-brand">
             <Hotel className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="text-xl font-black text-white uppercase tracking-tighter">Opcionais e Comodidades</h2>
-            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Hospedagem e Locação</p>
+            <h2 className="text-xl font-black text-slate-900 uppercase tracking-tighter">Opcionais e Comodidades</h2>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Hospedagem e Locação</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className={`p-6 rounded-3xl border-2 transition-all duration-300 ${needsLodging ? 'bg-brand/5 border-brand ring-4 ring-brand/10' : 'bg-slate-900 border-surface-border grayscale'}`}>
+          <div className={`p-6 rounded-2xl border-2 transition-all duration-300 ${needsLodging ? 'bg-brand/5 border-brand ring-4 ring-brand/10' : 'bg-slate-50 border-surface-border grayscale'}`}>
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-slate-950 rounded-2xl text-slate-400">
+              <div className="p-3 bg-white rounded-2xl text-slate-400">
                 <Hotel className="w-5 h-5" />
               </div>
-              <input type="checkbox" {...register('needs_lodging')} className="w-6 h-6 rounded-lg border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
+              <input type="checkbox" {...register('needs_lodging')} className="w-6 h-6 rounded-lg border-slate-300 bg-slate-100 text-brand focus:ring-brand" />
             </div>
-            <p className="text-sm font-black text-white uppercase tracking-tighter">Necessita Hospedagem?</p>
+            <p className="text-sm font-black text-slate-900 uppercase tracking-tighter">Necessita Hospedagem?</p>
             <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-1 italic">Hotel nível corporativo</p>
           </div>
 
-          <div className={`p-6 rounded-3xl border-2 transition-all duration-300 ${needsCar ? 'bg-brand/5 border-brand ring-4 ring-brand/10' : 'bg-slate-900 border-surface-border grayscale'}`}>
+          <div className={`p-6 rounded-2xl border-2 transition-all duration-300 ${needsCar ? 'bg-brand/5 border-brand ring-4 ring-brand/10' : 'bg-slate-50 border-surface-border grayscale'}`}>
             <div className="flex items-center justify-between mb-4">
-              <div className="p-3 bg-slate-950 rounded-2xl text-slate-400">
+              <div className="p-3 bg-white rounded-2xl text-slate-400">
                 <Car className="w-5 h-5" />
               </div>
-              <input type="checkbox" {...register('needs_destination_car')} className="w-6 h-6 rounded-lg border-slate-700 bg-slate-800 text-brand focus:ring-brand" />
+              <input type="checkbox" {...register('needs_destination_car')} className="w-6 h-6 rounded-lg border-slate-300 bg-slate-100 text-brand focus:ring-brand" />
             </div>
-            <p className="text-sm font-black text-white uppercase tracking-tighter">Necessita Veículo?</p>
+            <p className="text-sm font-black text-slate-900 uppercase tracking-tighter">Necessita Veículo?</p>
             <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-1 italic">Locação no destino</p>
           </div>
         </div>
       </div>
 
       {/* FOOTER AÇÕES */}
-      <div className="sticky bottom-8 z-20 flex items-center justify-between p-6 bg-slate-900/80 backdrop-blur-xl border border-surface-border rounded-full shadow-2xl">
+      <div className="sticky bottom-8 z-20 flex items-center justify-between p-6 bg-white border border-surface-border rounded-full shadow-md">
         <div className="hidden lg:flex flex-col ml-4">
-          <span className="text-xs font-bold text-white italic">Viagem para {destination}</span>
+          <span className="text-xs font-bold text-slate-900 italic">Viagem para {destination}</span>
           {daysUntilDeparture <= 5 && <span className="text-[8px] text-rose-500 font-black uppercase lg:animate-pulse">Urgência Detectada</span>}
         </div>
-        
+
         <div className="flex items-center gap-4 w-full lg:w-auto">
           <Button
             type="button"
             variant="outline"
-            className="h-12 px-8 border-slate-800 bg-slate-950/50 text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-800"
+            className="h-12 px-8 border-slate-200 bg-white text-[10px] font-black uppercase tracking-widest rounded-full hover:bg-slate-50"
           >
             <Save className="w-4 h-4 mr-2" /> Salvar Rascunho
           </Button>

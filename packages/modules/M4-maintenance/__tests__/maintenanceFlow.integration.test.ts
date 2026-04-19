@@ -1,5 +1,5 @@
-import { maintenanceHandlers } from '../../../src/lib/api/mock/maintenance-handlers';
-import { MaintenanceRequestInput } from '../../../src/lib/validation/schemas';
+import { maintenanceHandlers } from '@/lib/api/mock/maintenance-handlers';
+import { MaintenanceRequestInput } from '@/lib/validation/schemas';
 
 describe('M4 Maintenance Workflow Integration (Mock)', () => {
   it('should flow to APPROVED status when covered_by_contract is true', async () => {

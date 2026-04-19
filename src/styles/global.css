@@ -5,18 +5,22 @@
 @layer base {
   :root {
     --brand-500: #f59e0b;
-    --surface-bg: #0f172a;
-    --surface-card: #1e293b;
-    --surface-border: #334155;
+    --surface-bg: #f8fafc;
+    --surface-card: #ffffff;
+    --surface-border: #e2e8f0;
   }
 
   body {
-    @apply bg-surface-bg text-slate-100 font-sans;
+    @apply bg-surface-bg text-slate-900 font-sans;
   }
 }
 
 @layer components {
   .btn-primary {
     @apply bg-brand hover:bg-brand-dark text-white font-bold py-2 px-4 rounded transition-colors;
+  }
+
+  .vpreq-tooltip {
+    @apply inline-flex items-center justify-center ml-1 text-slate-400 hover:text-brand cursor-help transition-colors;
   }
 }

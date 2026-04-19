@@ -10,22 +10,27 @@ export const maintenanceHandlers = {
     // Lógica de Bypass de Contrato
     const status = data.covered_by_contract ? 'APPROVED' : 'SUBMITTED';
     
+    const newIdNum = Math.floor(Math.random() * 1000000);
     const request = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: newIdNum,
       ticket_number: ticketNumber,
+      userId: 1,
+      username: 'Gelson Filho',
       type: 'M4',
       status,
+      submittedAt: new Date().toISOString(),
       created_at: new Date().toISOString(),
       details: {
         ...data,
-        justificativa: data.description // Mapeando para o campo genérico do dashboard
+        justificativa: data.description 
       }
     };
 
-    // Persistência Mock (Dashboard)
+    // Persistência Mock (Sincronizado com mock-db)
     if (typeof window !== 'undefined') {
-      const existing = JSON.parse(localStorage.getItem('vp_requests_mock') || '[]');
-      localStorage.setItem('vp_requests_mock', JSON.stringify([request, ...existing]));
+      const { mockTicketList } = require('@core/db/mock-db');
+      mockTicketList.unshift(request);
+      localStorage.setItem('vp_tickets', JSON.stringify(mockTicketList));
     }
 
     return {

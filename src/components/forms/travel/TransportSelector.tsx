@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { Plane, Bus, Car, Key } from 'lucide-react';
@@ -24,22 +24,22 @@ export const TransportSelector = ({ register, selected }: TransportSelectorProps
         const isActive = selected === mode.value;
 
         return (
-          <label 
+          <label
             key={mode.value}
             className={`relative flex flex-col items-center justify-center p-6 border-2 rounded-2xl cursor-pointer transition-all duration-300 ${
-              isActive 
-                ? 'bg-brand/10 border-brand shadow-lg shadow-brand/10' 
-                : 'bg-slate-900/50 border-surface-border hover:border-slate-700'
+              isActive
+                ? 'bg-brand/10 border-brand shadow-lg shadow-brand/10'
+                : 'bg-slate-50 border-surface-border hover:border-slate-300'
             }`}
           >
-            <input 
-              type="radio" 
-              value={mode.value} 
-              {...register('transport_mode')} 
+            <input
+              type="radio"
+              value={mode.value}
+              {...register('transport_mode')}
               className="absolute opacity-0"
             />
             <Icon className={`w-8 h-8 mb-3 transition-colors ${isActive ? 'text-brand' : 'text-slate-500'}`} />
-            <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-white' : 'text-slate-500'}`}>
+            <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'text-slate-900' : 'text-slate-500'}`}>
               {mode.label}
             </span>
             {isActive && (

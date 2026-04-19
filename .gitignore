@@ -17,3 +17,9 @@ yarn-error.log*
 *.swp
 *.swo
 .DS_Store
+
+# Playwright
+.playwright/
+playwright-report/
+test-results/
+playwright.env.json

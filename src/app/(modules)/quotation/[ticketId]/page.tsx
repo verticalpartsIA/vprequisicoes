@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
@@ -39,7 +39,7 @@ export default function QuotationDetailPage() {
   if (!ticket) {
     return (
       <div className="container mx-auto py-20 text-center">
-        <h2 className="text-2xl font-bold text-white mb-4">Ticket não encontrado</h2>
+        <h2 className="text-2xl font-bold text-slate-900 mb-4">Ticket não encontrado</h2>
         <Button onClick={() => router.push('/quotation')}>Voltar para lista</Button>
       </div>
     );
@@ -48,7 +48,7 @@ export default function QuotationDetailPage() {
   return (
     <div className="container mx-auto py-10 space-y-8">
       {/* Header Info */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-surface-border/50">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 pb-6 border-b border-surface-border">
         <div className="space-y-4">
           <button 
             onClick={() => router.push('/quotation')}
@@ -86,23 +86,23 @@ export default function QuotationDetailPage() {
       </div>
 
       {/* Main Form Section */}
-      <div className="bg-surface-card/20 rounded-2xl p-8 border border-surface-border/40 backdrop-blur-md">
+      <div className="bg-surface-card/20 rounded-2xl p-8 border border-surface-border backdrop-blur-md">
         <QuotationForm ticket={ticket} />
       </div>
 
       {/* Audit/Info Footer */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-surface-border/30">
-        <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800/60">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-6 border-t border-surface-border">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
           <p className="text-xs text-slate-500 uppercase tracking-widest mb-2">Origem</p>
-          <p className="text-sm text-slate-300 font-medium">Portal v2 - Módulo {ticket.type}</p>
+          <p className="text-sm text-slate-600 font-medium">Portal v2 - Módulo {ticket.type}</p>
         </div>
-        <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800/60">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
           <p className="text-xs text-slate-500 uppercase tracking-widest mb-2">Justificativa Original</p>
-          <p className="text-sm text-slate-300 font-medium italic">"{ticket.details.justificativa}"</p>
+          <p className="text-sm text-slate-600 font-medium italic">"{ticket.details.justificativa}"</p>
         </div>
-        <div className="p-4 bg-slate-900/40 rounded-xl border border-slate-800/60">
+        <div className="p-4 bg-slate-50 rounded-xl border border-slate-200/60">
           <p className="text-xs text-slate-500 uppercase tracking-widest mb-2">SLA de Cotação</p>
-          <p className="text-sm text-slate-300 font-medium">Expira em 48h</p>
+          <p className="text-sm text-slate-600 font-medium">Expira em 48h</p>
         </div>
       </div>
     </div>
