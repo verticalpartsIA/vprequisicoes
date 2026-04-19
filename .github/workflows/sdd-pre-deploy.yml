@@ -255,27 +255,35 @@ jobs:
           key:      ${{ secrets.VPS_SSH_KEY }}
           script: |
             set -e
-            cd /opt/vprequisicoes
+            PROJECT_DIR="/docker/vprequisicoes"
+            REPO_DIR="$PROJECT_DIR/repo"
 
-            echo "── Pull ──"
-            git pull origin main
+            echo "── Clonar ou atualizar repo ──"
+            if [ ! -d "$REPO_DIR/.git" ]; then
+              mkdir -p "$PROJECT_DIR"
+              git clone https://github.com/verticalpartsIA/vprequisicoes.git "$REPO_DIR"
+            else
+              cd "$REPO_DIR" && git pull origin main
+            fi
 
-            echo "── .env.production ──"
-            cat > .env.production <<'ENVEOF'
-            NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-            NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
-            NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
-            SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-            ENVEOF
+            echo "── Atualizar .env ──"
+            cat > "$PROJECT_DIR/.env" <<ENVEOF
+NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}
+SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+NODE_ENV=production
+ENVEOF
 
             echo "── Docker build + up ──"
-            docker compose --env-file .env.production down
-            docker compose --env-file .env.production build --no-cache
-            docker compose --env-file .env.production up -d
+            cd "$PROJECT_DIR"
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
 
             echo "── Health check final ──"
-            sleep 15
-            curl -sf http://localhost:3000/api/health || (echo "HEALTH FALHOU" && exit 1)
+            sleep 20
+            wget -qO- http://localhost:3000/api/health || (echo "HEALTH FALHOU" && exit 1)
             echo "✓ Deploy concluído com sucesso"
 
   # ═══════════════════════════════════════════════════════════════════════════

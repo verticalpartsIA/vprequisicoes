@@ -50,7 +50,8 @@ Configurado mas com **timeout frequente** neste projeto. Se `mcp__supabase__exec
 | Servidor | `srv1510643.hstgr.cloud` |
 | Painel | hpanel.hostinger.com |
 | Projeto Docker | O vprequisições usa deploy via **SSH + docker compose** (não via Gerenciador Docker UI) |
-| Diretório no VPS | `/opt/vprequisicoes` (a confirmar/criar) |
+| Diretório no VPS | `/docker/vprequisicoes/` (projeto Docker) |
+| Repo no VPS | `/docker/vprequisicoes/repo/` (git clone) |
 | Proxy reverso | Traefik (compartilhado com outros projetos no VPS) |
 | Domínio final | `requisicoes.vpsistema.com` |
 
@@ -204,10 +205,51 @@ DRAFT → SUBMITTED → QUOTING → PENDING_APPROVAL → APPROVED → PURCHASING
 
 ---
 
-## 10. Pendências conhecidas
+## 10. Bloco de contexto rápido — copie e cole no início de qualquer sessão futura
 
-- [ ] Configurar GitHub Secrets (`VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`)
-- [ ] Clonar repositório em `/opt/vprequisicoes` no VPS
-- [ ] Configurar Traefik no VPS para `requisicoes.vpsistema.com`
-- [ ] Verificar se SDD pipeline passa completamente (acompanhar Actions após push de 19/04)
+```
+Projeto: VPRequisições
+Repo: https://github.com/verticalpartsIA/vprequisicoes (branch main)
+Local: C:\Users\gelso\Projetos_Sites\vprequisições_pai\vprequisições
+
+SUPABASE (vprequisições — NÃO confundir com vpsuprimentos):
+  URL: https://jsnnjsjnqqcqynjncmvz.supabase.co
+  Anon: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzbm5qc2pucXFjcXluam5jbXZ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1NDcxMDUsImV4cCI6MjA5MjEyMzEwNX0.xzt0F0DHe9_H7lN4qT3vmiEHNIjUPJ3ulhUiD7fB9C0
+  Service Role: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impzbm5qc2pucXFjcXluam5jbXZ6Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3NjU0NzEwNSwiZXhwIjoyMDkyMTIzMTA1fQ.peCHPjJdEwHrAZtcriMplSTx-JbQApB4pek0Vuxplc8
+  Schema: 100% aplicado em 19/04/2026. Tabelas: req_tickets, req_profiles, req_departments,
+          req_ticket_items, req_quotations, req_approvals, req_suppliers, req_audit_logs,
+          req_notifications + 2 views.
+
+VPS HOSTINGER:
+  IP: 72.61.48.156
+  VM ID: 1510643
+  Template: Ubuntu 24.04 com Docker + Traefik
+  Projeto Docker: /docker/vprequisicoes/
+  Repo no VPS: /docker/vprequisicoes/repo/
+  Domínio: requisicoes.vpsistema.com
+  Traefik: projeto "traefik" no Docker Manager, proxy network "proxy"
+
+ATENÇÃO — vpsuprimentos é OUTRO projeto:
+  Supabase: crvtpkrgjscssykyeqro | Domínio: suprimentos.vpsistema.com
+
+DEPLOY:
+  Pipeline: .github/workflows/sdd-pre-deploy.yml (BASE→MEIO→TOPO→DEPLOY via SSH)
+  Deploy SSH: git clone/pull em /docker/vprequisicoes/repo + docker compose up
+  GitHub Secrets necessários: VPS_HOST, VPS_USER, VPS_SSH_KEY,
+    NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    SUPABASE_SERVICE_ROLE_KEY, NEXT_PUBLIC_APP_URL
+
+TESTES:
+  npm test → 24 suites, 102 tests (todos verdes em 19/04/2026)
+  Excluídos do npm test: tests/sdd/** e supabase-flow* (precisam de vars Supabase)
+```
+
+---
+
+## 11. Pendências conhecidas
+
+- [ ] Configurar GitHub Secrets: `VPS_HOST=72.61.48.156`, `VPS_USER=root`, `VPS_SSH_KEY=<chave privada>`
+- [ ] Traefik recriado em 19/04/2026 — verificar se subiu (porta 80/443, SSL Let's Encrypt)
+- [ ] Projeto `vprequisicoes` criado no Docker Manager — verificar se build concluiu
+- [ ] Verificar se SDD pipeline passa completamente no GitHub Actions
 - [ ] Restaurar stash de alterações locais na branch `feature/m5-freight-module`
