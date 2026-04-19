@@ -24,6 +24,7 @@ jobs:
   sdd-setup-migrate:
     name: "SETUP — Aplicar migration Supabase (idempotente)"
     runs-on: ubuntu-latest
+    continue-on-error: true   # Schema já aplicado manualmente; não bloqueia pipeline
     steps:
       - uses: actions/checkout@v4
       - name: Instalar psql client
