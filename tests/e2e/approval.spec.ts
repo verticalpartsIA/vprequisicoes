@@ -8,7 +8,7 @@ test.describe('Módulo de Aprovação', () => {
 
   test('carrega lista de aprovações pendentes', async ({ page }) => {
     await page.goto('/approval');
-    await expect(page.getByRole('list')).toBeVisible();
+    await expect(page.getByRole('table')).toBeVisible();
   });
 
   test('fluxo completo: busca → analisa → aprova', async ({ page }) => {
@@ -19,30 +19,28 @@ test.describe('Módulo de Aprovação', () => {
     await search.fill('M1-0123');
     await expect(page.getByText('M1-0123')).toBeVisible();
     await expect(page.getByText('R$ 110,00')).toBeVisible();
-    await expect(page.getByText('Tier 1')).toBeVisible();
+    await expect(page.getByText(/nível 1/i)).toBeVisible();
 
     // Analisar
     await page.getByRole('button', { name: /analisar/i }).click();
     await expect(page.getByText('Parafusos Brasil')).toBeVisible();
 
     // Aprovar
-    await page.getByRole('button', { name: /aprovar/i }).click();
-    await page.getByRole('button', { name: /confirmar/i }).click();
+    await page.getByRole('button', { name: /confirmar decisão/i }).click();
 
-    // Resultado
-    await expect(page.getByText(/approved/i)).toBeVisible();
+    // Resultado (redireciona para compras após aprovar)
+    await expect(page.getByRole('heading', { name: /console de compras/i })).toBeVisible({ timeout: 15000 });
   });
 
   test('bloqueia aprovação sem cotação', async ({ page }) => {
-    await page.goto('/approval');
-    const btn = page.getByRole('button', { name: /aprovar/i }).first();
-    await expect(btn).toBeDisabled();
+    await page.goto('/approval/124');
+    await expect(page.getByRole('button', { name: /confirmar decisão/i })).toBeDisabled();
   });
 
   test('bloqueia reprovação sem motivo (mínimo 10 chars)', async ({ page }) => {
-    await page.goto('/approval');
-    await page.getByRole('button', { name: /reprovar/i }).first().click();
-    const confirmar = page.getByRole('button', { name: /confirmar/i });
+    await page.goto('/approval/123');
+    await page.getByRole('radio', { name: /reprovar/i }).click();
+    const confirmar = page.getByRole('button', { name: /confirmar decisão/i });
     await expect(confirmar).toBeDisabled();
 
     await page.getByRole('textbox').fill('curto');
@@ -53,9 +51,9 @@ test.describe('Módulo de Aprovação', () => {
   });
 
   test('bloqueia revisão sem comentário (mínimo 5 chars)', async ({ page }) => {
-    await page.goto('/approval');
-    await page.getByRole('button', { name: /revisar/i }).first().click();
-    const confirmar = page.getByRole('button', { name: /confirmar/i });
+    await page.goto('/approval/123');
+    await page.getByRole('radio', { name: /revisar/i }).click();
+    const confirmar = page.getByRole('button', { name: /confirmar decisão/i });
     await expect(confirmar).toBeDisabled();
 
     await page.getByRole('textbox').fill('ok');
@@ -69,10 +67,10 @@ test.describe('Módulo de Aprovação', () => {
     await page.goto('/approval');
     await page.getByPlaceholder(/buscar|search/i).fill('M1-0123');
     await page.getByRole('button', { name: /analisar/i }).click();
-    await page.getByRole('button', { name: /aprovar/i }).click();
-    await page.getByRole('button', { name: /confirmar/i }).click();
+    await page.getByRole('button', { name: /confirmar decisão/i }).click();
 
-    await page.getByPlaceholder(/buscar|search/i).clear();
+    await page.goto('/approval');
+    await page.getByPlaceholder(/buscar|search/i).fill('M1-0123');
     await expect(page.getByText('M1-0123')).not.toBeVisible();
   });
 });
