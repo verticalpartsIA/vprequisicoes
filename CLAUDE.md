@@ -248,8 +248,22 @@ TESTES:
 
 ## 11. Pendências conhecidas
 
-- [ ] Configurar GitHub Secrets: `VPS_HOST=72.61.48.156`, `VPS_USER=root`, `VPS_SSH_KEY=<chave privada>`
-- [ ] Traefik recriado em 19/04/2026 — verificar se subiu (porta 80/443, SSL Let's Encrypt)
-- [ ] Projeto `vprequisicoes` criado no Docker Manager — verificar se build concluiu
-- [ ] Verificar se SDD pipeline passa completamente no GitHub Actions
-- [ ] Restaurar stash de alterações locais na branch `feature/m5-freight-module`
+### 🚨 CRÍTICO — App não funciona (dados somem após submit)
+- [ ] **`src/lib/api/client.mock.ts` linha 14: `USE_MOCK = true`** — MUDAR PARA FALSE
+- [ ] **Criar `src/app/api/requests/route.ts`** — GET lista tickets, POST cria ticket no Supabase
+- [ ] **Criar `src/app/api/requests/[id]/route.ts`** — GET detalhe do ticket
+- [ ] Testar fluxo: criar → ver na lista → avançar status
+
+### Pipeline / Deploy
+- [ ] Verificar se TOPO E2E passou e deploy rodou (run `24641602829`)
+- [ ] Playwright auth tests precisam de `TEST_REQUESTER_EMAIL` + `TEST_REQUESTER_PASSWORD` secrets
+- [ ] `tests/sdd/BASE_001` e `MEIO_001` têm `continue-on-error` (vitest ignora --config)
+
+### Resolvido em 19/04/2026
+- [x] GitHub Secrets configurados (8 secrets)
+- [x] Schema Supabase aplicado (11 tabelas req_*)
+- [x] SDD YAML corrigido (heredoc quebrando parser)
+- [x] handlers.ts corrigido (id numérico, status uppercase)
+- [x] 102/102 testes unitários passando
+- [x] MEIO SDD pipeline passou
+- [x] Token com workflow scope: `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`
