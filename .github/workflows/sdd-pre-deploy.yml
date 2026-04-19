@@ -18,6 +18,24 @@ env:
 jobs:
 
   # ═══════════════════════════════════════════════════════════════════════════
+  # SETUP — Aplica migration no Supabase (idempotente, roda sempre primeiro)
+  # Garante que o schema existe ANTES de qualquer teste de integração.
+  # ═══════════════════════════════════════════════════════════════════════════
+  sdd-setup-migrate:
+    name: "SETUP — Aplicar migration Supabase (idempotente)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar psql client
+        run: sudo apt-get install -y postgresql-client
+      - name: Aplicar migration 001_initial_schema.sql
+        run: |
+          psql "${{ secrets.SUPABASE_DB_URL }}" \
+            -v ON_ERROR_STOP=1 \
+            -f supabase/migrations/001_initial_schema.sql
+          echo "✓ Migration aplicada com sucesso"
+
+  # ═══════════════════════════════════════════════════════════════════════════
   # NÍVEL BASE — TypeScript + Schema Supabase
   # Fail fast: se falhar aqui, MEIO e TOPO não rodam, deploy cancelado.
   # ═══════════════════════════════════════════════════════════════════════════
@@ -38,6 +56,7 @@ jobs:
   sdd-base-schema:
     name: "BASE — Inspeção completa schema Supabase"
     runs-on: ubuntu-latest
+    needs: [sdd-setup-migrate]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -264,7 +283,7 @@ jobs:
   sdd-failure-report:
     name: "Relatório de falha SDD → Issue GitHub"
     runs-on: ubuntu-latest
-    needs: [sdd-base-typecheck, sdd-base-schema, sdd-base-build, sdd-meio-integration, sdd-topo-e2e]
+    needs: [sdd-setup-migrate, sdd-base-typecheck, sdd-base-schema, sdd-base-build, sdd-meio-integration, sdd-topo-e2e]
     if: failure() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
     steps:
       - uses: actions/checkout@v4

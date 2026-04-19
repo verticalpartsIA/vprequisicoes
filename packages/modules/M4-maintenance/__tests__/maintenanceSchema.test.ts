@@ -51,9 +51,11 @@ describe('M4 Maintenance Request Schema Validation', () => {
       priority: 'medium',
       covered_by_contract: true,
       contract_number: 'CT-2024-001',
+      // next_due_date obrigatório quando há contrato, deve ser data futura
+      next_due_date: '2028-12-31',
       recurrence: 'one_time'
     };
-    
+
     const result = maintenanceRequestSchema.safeParse(validData);
     expect(result.success).toBe(true);
   });

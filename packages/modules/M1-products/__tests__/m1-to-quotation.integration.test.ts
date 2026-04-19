@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { productRequestSchema } from '@/lib/validation/schemas';
 import { mockApiClient } from '@/lib/api/client.mock';
-import { createMockProductRequest } from '../../../../core/test-utils/factories';
+import { createMockProductRequest } from '@core/test-utils/factories';
 
 describe('M1ToQuotationIntegration', () => {
   it('M1 submit válido gera ticket com status "submitted"', async () => {
@@ -19,10 +19,10 @@ describe('M1ToQuotationIntegration', () => {
   });
 
   it('Ticket gerado tem estrutura compatível com módulo Cotação', async () => {
-    const res: any = await mockApiClient.get('/api/requests/123');
+    const res: any = await mockApiClient.get('/api/requests/124');
     
     expect(res.data).toMatchObject({
-      id: 123,
+      id: 124,
       status: "SUBMITTED",
       type: "M1"
     });
