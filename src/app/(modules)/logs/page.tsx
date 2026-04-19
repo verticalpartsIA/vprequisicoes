@@ -29,108 +29,7 @@ interface LogEntry {
   metadata: Record<string, unknown>;
 }
 
-const MOCK_LOGS: LogEntry[] = [
-  {
-    id: 1,
-    timestamp: '2026-04-18T14:32:15',
-    level: 'info',
-    module: 'M5 — Frete',
-    action: 'Cotação criada',
-    user: 'João Silva',
-    details: 'Cotação #COT-2026-045 criada para transporte SP-RJ',
-    metadata: { ticketId: 'COT-2026-045', value: 3500 }
-  },
-  {
-    id: 2,
-    timestamp: '2026-04-18T14:28:42',
-    level: 'success',
-    module: 'M1 — Produtos',
-    action: 'Requisição aprovada',
-    user: 'Maria Santos',
-    details: 'Requisição #REQ-2026-123 aprovada pela alçada 2',
-    metadata: { ticketId: 'REQ-2026-123', approver: 'Carlos Mendes' }
-  },
-  {
-    id: 3,
-    timestamp: '2026-04-18T14:15:30',
-    level: 'warning',
-    module: 'M6 — Locação',
-    action: 'Prazo de cotação excedido',
-    user: 'Sistema',
-    details: 'Cotação de locação #LOC-2026-012 ultrapassou 4 horas sem resposta',
-    metadata: { ticketId: 'LOC-2026-012', elapsedHours: 5 }
-  },
-  {
-    id: 4,
-    timestamp: '2026-04-18T13:45:18',
-    level: 'error',
-    module: 'M3 — Serviços',
-    action: 'Falha na integração',
-    user: 'Sistema',
-    details: 'Erro ao conectar com API do fornecedor ABC',
-    metadata: { error: 'Timeout', provider: 'ABC Services' }
-  },
-  {
-    id: 5,
-    timestamp: '2026-04-18T13:30:05',
-    level: 'info',
-    module: 'V2 — Cotação',
-    action: 'Leilão iniciado',
-    user: 'Pedro Oliveira',
-    details: 'Leilão #LEI-2026-008 iniciado com 5 fornecedores',
-    metadata: { ticketId: 'LEI-2026-008', suppliers: 5 }
-  },
-  {
-    id: 6,
-    timestamp: '2026-04-18T12:15:22',
-    level: 'success',
-    module: 'M4 — Manutenção',
-    action: 'OS finalizada',
-    user: 'Ana Paula',
-    details: 'Ordem de serviço #OS-2026-089 concluída e atestada',
-    metadata: { ticketId: 'OS-2026-089', cost: 1250 }
-  },
-  {
-    id: 7,
-    timestamp: '2026-04-18T11:42:10',
-    level: 'info',
-    module: 'M2 — Viagens',
-    action: 'Passagens emitidas',
-    user: 'Lucas Ferreira',
-    details: 'Passagens emitidas para viagem #VIA-2026-034',
-    metadata: { ticketId: 'VIA-2026-034', passengers: 3 }
-  },
-  {
-    id: 8,
-    timestamp: '2026-04-18T10:20:33',
-    level: 'warning',
-    module: 'V4 — Compras',
-    action: 'Orçamento estourado',
-    user: 'Sistema',
-    details: 'Compra #COM-2026-056 excedeu orçamento aprovado em 15%',
-    metadata: { ticketId: 'COM-2026-056', overage: 15 }
-  },
-  {
-    id: 9,
-    timestamp: '2026-04-18T09:55:00',
-    level: 'success',
-    module: 'V5 — Recebimento',
-    action: 'Mercadoria recebida',
-    user: 'Carlos Mendes',
-    details: 'OC-000312 recebida e conferida no almoxarifado',
-    metadata: { oc: 'OC-000312', items: 8 }
-  },
-  {
-    id: 10,
-    timestamp: '2026-04-18T09:10:47',
-    level: 'error',
-    module: 'V3 — Aprovação',
-    action: 'Alçada insuficiente',
-    user: 'João Silva',
-    details: 'Tentativa de aprovação sem alçada suficiente para valor R$ 85.000',
-    metadata: { value: 85000, required_tier: 3 }
-  },
-];
+const MOCK_LOGS: LogEntry[] = [];
 
 const LEVEL_CONFIG: Record<LogLevel, { icon: React.ReactNode; badge: string; row: string }> = {
   info:    { icon: <Info className="w-4 h-4 text-blue-500" />,    badge: 'bg-blue-50 text-blue-700 border-blue-200',    row: 'hover:bg-blue-50/50' },
@@ -170,9 +69,9 @@ export default function LogsPage() {
 
   const counts = {
     total: MOCK_LOGS.length,
-    success: MOCK_LOGS.filter(l => l.level === 'success').length,
-    warning: MOCK_LOGS.filter(l => l.level === 'warning').length,
-    error: MOCK_LOGS.filter(l => l.level === 'error').length,
+    success: MOCK_LOGS.filter((l: LogEntry) => l.level === 'success').length,
+    warning: MOCK_LOGS.filter((l: LogEntry) => l.level === 'warning').length,
+    error: MOCK_LOGS.filter((l: LogEntry) => l.level === 'error').length,
   };
 
   return (
@@ -271,7 +170,8 @@ export default function LogsPage() {
           {filtered.length === 0 ? (
             <div className="py-20 text-center">
               <Activity className="w-12 h-12 text-slate-200 mx-auto mb-3" />
-              <p className="text-slate-400 font-medium">Nenhum log corresponde aos filtros.</p>
+              <p className="text-slate-400 font-medium">Nenhum evento registado ainda.</p>
+              <p className="text-slate-300 text-sm mt-1">As atividades do sistema aparecerão aqui conforme forem ocorrendo.</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
