@@ -15,9 +15,9 @@ export default async function ModulesLayout({
     redirect('/login');
   }
 
-  // Busca perfil do utilizador
+  // Busca perfil do utilizador (tabela req_profiles — partilha Supabase com vpsistema)
   const { data: profile } = await supabase
-    .from('profiles')
+    .from('req_profiles')
     .select('id, full_name, email, role')
     .eq('id', user.id)
     .single();

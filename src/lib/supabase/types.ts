@@ -10,16 +10,162 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
-      approvals: {
+      activity_logs: {
+        Row: {
+          action: string
+          criado_em: string | null
+          details: Json | null
+          id: string
+          target: string | null
+          user_email: string | null
+          user_id: string | null
+          user_name: string | null
+        }
+        Insert: {
+          action: string
+          criado_em?: string | null
+          details?: Json | null
+          id?: string
+          target?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Update: {
+          action?: string
+          criado_em?: string | null
+          details?: Json | null
+          id?: string
+          target?: string | null
+          user_email?: string | null
+          user_id?: string | null
+          user_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_logs_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      module_permissions: {
+        Row: {
+          can_access: boolean | null
+          created_at: string | null
+          granted_by: string | null
+          id: string
+          module_slug: string
+          user_id: string
+        }
+        Insert: {
+          can_access?: boolean | null
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          module_slug: string
+          user_id: string
+        }
+        Update: {
+          can_access?: boolean | null
+          created_at?: string | null
+          granted_by?: string | null
+          id?: string
+          module_slug?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      modules: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          description: string | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          slug: string
+          sort_order: number | null
+          url: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          slug: string
+          sort_order?: number | null
+          url: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string | null
+          description?: string | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          slug?: string
+          sort_order?: number | null
+          url?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string | null
+          department: string | null
+          email: string
+          id: string
+          is_active: boolean | null
+          level: string
+          name: string
+          role: string
+          updated_at: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email: string
+          id: string
+          is_active?: boolean | null
+          level?: string
+          name: string
+          role?: string
+          updated_at?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string | null
+          department?: string | null
+          email?: string
+          id?: string
+          is_active?: boolean | null
+          level?: string
+          name?: string
+          role?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      req_approvals: {
         Row: {
           approver_id: string
           created_at: string
           decided_at: string | null
-          decision: Database["public"]["Enums"]["approval_decision"]
+          decision: Database["public"]["Enums"]["req_approval_decision"]
           delegated_to: string | null
           id: string
           notes: string | null
@@ -30,7 +176,7 @@ export type Database = {
           approver_id: string
           created_at?: string
           decided_at?: string | null
-          decision?: Database["public"]["Enums"]["approval_decision"]
+          decision?: Database["public"]["Enums"]["req_approval_decision"]
           delegated_to?: string | null
           id?: string
           notes?: string | null
@@ -41,45 +187,23 @@ export type Database = {
           approver_id?: string
           created_at?: string
           decided_at?: string | null
-          decision?: Database["public"]["Enums"]["approval_decision"]
+          decision?: Database["public"]["Enums"]["req_approval_decision"]
           delegated_to?: string | null
           id?: string
           notes?: string | null
           ticket_id?: string
           tier?: number
         }
-        Relationships: [
-          {
-            foreignKeyName: "approvals_approver_id_fkey"
-            columns: ["approver_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "approvals_delegated_to_fkey"
-            columns: ["delegated_to"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "approvals_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      audit_logs: {
+      req_audit_logs: {
         Row: {
           action: string
           created_at: string
           details: string | null
           id: string
           ip_address: unknown
-          level: Database["public"]["Enums"]["log_level"]
+          level: Database["public"]["Enums"]["req_log_level"]
           metadata: Json
           module: string | null
           ticket_id: string | null
@@ -92,7 +216,7 @@ export type Database = {
           details?: string | null
           id?: string
           ip_address?: unknown
-          level?: Database["public"]["Enums"]["log_level"]
+          level?: Database["public"]["Enums"]["req_log_level"]
           metadata?: Json
           module?: string | null
           ticket_id?: string | null
@@ -105,31 +229,16 @@ export type Database = {
           details?: string | null
           id?: string
           ip_address?: unknown
-          level?: Database["public"]["Enums"]["log_level"]
+          level?: Database["public"]["Enums"]["req_log_level"]
           metadata?: Json
           module?: string | null
           ticket_id?: string | null
           user_agent?: string | null
           user_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "audit_logs_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "audit_logs_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      departments: {
+      req_departments: {
         Row: {
           cost_center: string
           created_at: string
@@ -157,17 +266,9 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_departments_manager"
-            columns: ["manager_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      notifications: {
+      req_notifications: {
         Row: {
           action_url: string | null
           body: string | null
@@ -204,24 +305,9 @@ export type Database = {
           type?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "notifications_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "notifications_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      profiles: {
+      req_profiles: {
         Row: {
           approval_limit: number | null
           approval_tier: number | null
@@ -232,7 +318,7 @@ export type Database = {
           full_name: string
           id: string
           is_active: boolean
-          role: Database["public"]["Enums"]["user_role"]
+          role: Database["public"]["Enums"]["req_user_role"]
           updated_at: string
         }
         Insert: {
@@ -245,7 +331,7 @@ export type Database = {
           full_name: string
           id: string
           is_active?: boolean
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: Database["public"]["Enums"]["req_user_role"]
           updated_at?: string
         }
         Update: {
@@ -258,20 +344,12 @@ export type Database = {
           full_name?: string
           id?: string
           is_active?: boolean
-          role?: Database["public"]["Enums"]["user_role"]
+          role?: Database["public"]["Enums"]["req_user_role"]
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      quotations: {
+      req_quotations: {
         Row: {
           attachment_url: string | null
           created_at: string
@@ -283,7 +361,7 @@ export type Database = {
           quoter_id: string | null
           received_at: string | null
           sent_at: string | null
-          status: Database["public"]["Enums"]["quotation_status"]
+          status: Database["public"]["Enums"]["req_quotation_status"]
           supplier_id: string
           ticket_id: string
           total_value: number | null
@@ -301,7 +379,7 @@ export type Database = {
           quoter_id?: string | null
           received_at?: string | null
           sent_at?: string | null
-          status?: Database["public"]["Enums"]["quotation_status"]
+          status?: Database["public"]["Enums"]["req_quotation_status"]
           supplier_id: string
           ticket_id: string
           total_value?: number | null
@@ -319,38 +397,16 @@ export type Database = {
           quoter_id?: string | null
           received_at?: string | null
           sent_at?: string | null
-          status?: Database["public"]["Enums"]["quotation_status"]
+          status?: Database["public"]["Enums"]["req_quotation_status"]
           supplier_id?: string
           ticket_id?: string
           total_value?: number | null
           updated_at?: string
           validity_date?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "quotations_quoter_id_fkey"
-            columns: ["quoter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quotations_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "quotations_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      suppliers: {
+      req_suppliers: {
         Row: {
           address: string | null
           categories: string[]
@@ -398,7 +454,7 @@ export type Database = {
         }
         Relationships: []
       }
-      ticket_items: {
+      req_ticket_items: {
         Row: {
           created_at: string
           description: string
@@ -435,17 +491,9 @@ export type Database = {
           unit?: string
           unit_price?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "ticket_items_ticket_id_fkey"
-            columns: ["ticket_id"]
-            isOneToOne: false
-            referencedRelation: "tickets"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
-      tickets: {
+      req_tickets: {
         Row: {
           approved_at: string | null
           cancelled_at: string | null
@@ -455,15 +503,15 @@ export type Database = {
           description: string | null
           id: string
           metadata: Json
-          module: Database["public"]["Enums"]["module_type"]
-          priority: Database["public"]["Enums"]["priority_level"]
+          module: Database["public"]["Enums"]["req_module_type"]
+          priority: Database["public"]["Enums"]["req_priority_level"]
           purchased_at: string | null
           quoted_at: string | null
           received_at: string | null
           rejected_at: string | null
           released_at: string | null
           requester_id: string
-          status: Database["public"]["Enums"]["ticket_status"]
+          status: Database["public"]["Enums"]["req_ticket_status"]
           submitted_at: string | null
           ticket_number: string
           title: string
@@ -479,15 +527,15 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json
-          module: Database["public"]["Enums"]["module_type"]
-          priority?: Database["public"]["Enums"]["priority_level"]
+          module: Database["public"]["Enums"]["req_module_type"]
+          priority?: Database["public"]["Enums"]["req_priority_level"]
           purchased_at?: string | null
           quoted_at?: string | null
           received_at?: string | null
           rejected_at?: string | null
           released_at?: string | null
           requester_id: string
-          status?: Database["public"]["Enums"]["ticket_status"]
+          status?: Database["public"]["Enums"]["req_ticket_status"]
           submitted_at?: string | null
           ticket_number: string
           title: string
@@ -503,41 +551,50 @@ export type Database = {
           description?: string | null
           id?: string
           metadata?: Json
-          module?: Database["public"]["Enums"]["module_type"]
-          priority?: Database["public"]["Enums"]["priority_level"]
+          module?: Database["public"]["Enums"]["req_module_type"]
+          priority?: Database["public"]["Enums"]["req_priority_level"]
           purchased_at?: string | null
           quoted_at?: string | null
           received_at?: string | null
           rejected_at?: string | null
           released_at?: string | null
           requester_id?: string
-          status?: Database["public"]["Enums"]["ticket_status"]
+          status?: Database["public"]["Enums"]["req_ticket_status"]
           submitted_at?: string | null
           ticket_number?: string
           title?: string
           total_value?: number | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "tickets_department_id_fkey"
-            columns: ["department_id"]
-            isOneToOne: false
-            referencedRelation: "departments"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "tickets_requester_id_fkey"
-            columns: ["requester_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      role_permissions: {
+        Row: {
+          created_at: string | null
+          department: string | null
+          id: string
+          level: string
+          module_slug: string
+        }
+        Insert: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          level: string
+          module_slug: string
+        }
+        Update: {
+          created_at?: string | null
+          department?: string | null
+          id?: string
+          level?: string
+          module_slug?: string
+        }
+        Relationships: []
       }
     }
     Views: {
-      tickets_view: {
+      req_tickets_view: {
         Row: {
           approved_at: string | null
           cost_center: string | null
@@ -547,13 +604,13 @@ export type Database = {
           description: string | null
           id: string | null
           metadata: Json | null
-          module: Database["public"]["Enums"]["module_type"] | null
-          priority: Database["public"]["Enums"]["priority_level"] | null
+          module: Database["public"]["Enums"]["req_module_type"] | null
+          priority: Database["public"]["Enums"]["req_priority_level"] | null
           released_at: string | null
           requester_email: string | null
           requester_name: string | null
-          requester_role: Database["public"]["Enums"]["user_role"] | null
-          status: Database["public"]["Enums"]["ticket_status"] | null
+          requester_role: Database["public"]["Enums"]["req_user_role"] | null
+          status: Database["public"]["Enums"]["req_ticket_status"] | null
           submitted_at: string | null
           ticket_number: string | null
           title: string | null
@@ -562,29 +619,62 @@ export type Database = {
         }
         Relationships: []
       }
+      req_users_public: {
+        Row: {
+          approval_limit: number | null
+          approval_tier: number | null
+          department_id: string | null
+          email: string | null
+          full_name: string | null
+          id: string | null
+          is_active: boolean | null
+          role: Database["public"]["Enums"]["req_user_role"] | null
+        }
+        Insert: {
+          approval_limit?: number | null
+          approval_tier?: number | null
+          department_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["req_user_role"] | null
+        }
+        Update: {
+          approval_limit?: number | null
+          approval_tier?: number | null
+          department_id?: string | null
+          email?: string | null
+          full_name?: string | null
+          id?: string | null
+          is_active?: boolean | null
+          role?: Database["public"]["Enums"]["req_user_role"] | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      current_user_role: {
+      req_current_user_role: {
         Args: never
-        Returns: Database["public"]["Enums"]["user_role"]
+        Returns: Database["public"]["Enums"]["req_user_role"]
       }
-      generate_ticket_number: {
-        Args: { p_module: Database["public"]["Enums"]["module_type"] }
+      req_generate_ticket_number: {
+        Args: { p_module: Database["public"]["Enums"]["req_module_type"] }
         Returns: string
       }
-      is_admin: { Args: never; Returns: boolean }
-      is_valid_transition: {
+      req_is_admin: { Args: never; Returns: boolean }
+      req_is_valid_transition: {
         Args: {
-          p_from: Database["public"]["Enums"]["ticket_status"]
-          p_to: Database["public"]["Enums"]["ticket_status"]
+          p_from: Database["public"]["Enums"]["req_ticket_status"]
+          p_to: Database["public"]["Enums"]["req_ticket_status"]
         }
         Returns: boolean
       }
-      log_audit: {
+      req_log_audit: {
         Args: {
           p_action: string
-          p_details?: string
-          p_level: Database["public"]["Enums"]["log_level"]
+          p_details: string
+          p_level: Database["public"]["Enums"]["req_log_level"]
           p_metadata?: Json
           p_module: string
           p_ticket_id: string
@@ -592,9 +682,18 @@ export type Database = {
         }
         Returns: string
       }
-      transition_ticket: {
+      req_set_user_role: {
         Args: {
-          p_new_status: Database["public"]["Enums"]["ticket_status"]
+          p_limit?: number
+          p_role: Database["public"]["Enums"]["req_user_role"]
+          p_tier?: number
+          p_user_id: string
+        }
+        Returns: undefined
+      }
+      req_transition_ticket: {
+        Args: {
+          p_new_status: Database["public"]["Enums"]["req_ticket_status"]
           p_notes?: string
           p_ticket_id: string
           p_user_id: string
@@ -608,15 +707,15 @@ export type Database = {
           description: string | null
           id: string
           metadata: Json
-          module: Database["public"]["Enums"]["module_type"]
-          priority: Database["public"]["Enums"]["priority_level"]
+          module: Database["public"]["Enums"]["req_module_type"]
+          priority: Database["public"]["Enums"]["req_priority_level"]
           purchased_at: string | null
           quoted_at: string | null
           received_at: string | null
           rejected_at: string | null
           released_at: string | null
           requester_id: string
-          status: Database["public"]["Enums"]["ticket_status"]
+          status: Database["public"]["Enums"]["req_ticket_status"]
           submitted_at: string | null
           ticket_number: string
           title: string
@@ -626,23 +725,23 @@ export type Database = {
       }
     }
     Enums: {
-      approval_decision: "PENDING" | "APPROVED" | "REJECTED" | "DELEGATED"
-      log_level: "info" | "success" | "warning" | "error"
-      module_type:
+      req_approval_decision: "PENDING" | "APPROVED" | "REJECTED" | "DELEGATED"
+      req_log_level: "info" | "success" | "warning" | "error"
+      req_module_type:
         | "M1_PRODUTOS"
         | "M2_VIAGENS"
         | "M3_SERVICOS"
         | "M4_MANUTENCAO"
         | "M5_FRETE"
         | "M6_LOCACAO"
-      priority_level: "low" | "normal" | "high" | "urgent"
-      quotation_status:
+      req_priority_level: "low" | "normal" | "high" | "urgent"
+      req_quotation_status:
         | "PENDING"
         | "SENT"
         | "RECEIVED"
         | "SELECTED"
         | "REJECTED"
-      ticket_status:
+      req_ticket_status:
         | "DRAFT"
         | "SUBMITTED"
         | "QUOTING"
@@ -655,7 +754,7 @@ export type Database = {
         | "RETURNED"
         | "RELEASED"
         | "CANCELLED"
-      user_role:
+      req_user_role:
         | "requester"
         | "quoter"
         | "approver"
@@ -670,6 +769,7 @@ export type Database = {
 }
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
 type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
@@ -768,12 +868,29 @@ export type Enums<
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
 export const Constants = {
   public: {
     Enums: {
-      approval_decision: ["PENDING", "APPROVED", "REJECTED", "DELEGATED"],
-      log_level: ["info", "success", "warning", "error"],
-      module_type: [
+      req_approval_decision: ["PENDING", "APPROVED", "REJECTED", "DELEGATED"],
+      req_log_level: ["info", "success", "warning", "error"],
+      req_module_type: [
         "M1_PRODUTOS",
         "M2_VIAGENS",
         "M3_SERVICOS",
@@ -781,9 +898,15 @@ export const Constants = {
         "M5_FRETE",
         "M6_LOCACAO",
       ],
-      priority_level: ["low", "normal", "high", "urgent"],
-      quotation_status: ["PENDING", "SENT", "RECEIVED", "SELECTED", "REJECTED"],
-      ticket_status: [
+      req_priority_level: ["low", "normal", "high", "urgent"],
+      req_quotation_status: [
+        "PENDING",
+        "SENT",
+        "RECEIVED",
+        "SELECTED",
+        "REJECTED",
+      ],
+      req_ticket_status: [
         "DRAFT",
         "SUBMITTED",
         "QUOTING",
@@ -797,7 +920,7 @@ export const Constants = {
         "RELEASED",
         "CANCELLED",
       ],
-      user_role: [
+      req_user_role: [
         "requester",
         "quoter",
         "approver",

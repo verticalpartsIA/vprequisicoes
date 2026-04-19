@@ -28,15 +28,30 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
 
-  // Rotas públicas
+  // Rotas públicas (incluindo SSO entry-point)
   const isPublic =
     pathname.startsWith('/login') ||
     pathname.startsWith('/auth/') ||
+    pathname.startsWith('/api/sso') ||
     pathname.startsWith('/_next') ||
     pathname.startsWith('/favicon');
 
-  // Sem sessão → redireciona para login
+  // Sem sessão → verifica se há SSO token na URL antes de redirecionar para login
   if (!user && !isPublic) {
+    const ssoToken   = request.nextUrl.searchParams.get('sso_token');
+    const ssoRefresh = request.nextUrl.searchParams.get('sso_refresh');
+
+    if (ssoToken && ssoRefresh) {
+      // Redireciona para o handler SSO com os tokens e o destino original
+      const ssoUrl = request.nextUrl.clone();
+      ssoUrl.pathname = '/api/sso';
+      ssoUrl.search   = '';
+      ssoUrl.searchParams.set('sso_token',   ssoToken);
+      ssoUrl.searchParams.set('sso_refresh', ssoRefresh);
+      ssoUrl.searchParams.set('next', pathname === '/' ? '/dashboard' : pathname);
+      return NextResponse.redirect(ssoUrl);
+    }
+
     const url = request.nextUrl.clone();
     url.pathname = '/login';
     url.searchParams.set('redirectTo', pathname);
