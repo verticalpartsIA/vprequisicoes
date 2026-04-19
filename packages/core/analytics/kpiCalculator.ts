@@ -24,9 +24,9 @@ export const kpiCalculator = {
       total_tickets: tickets.length,
       tickets_pending_approval: tickets.filter(t => t.status === 'PENDING' || t.status === 'SUBMITTED').length,
       total_auction_savings: totalSavings,
-      avg_savings_percent: 12.5,
-      avg_sla_hours: 4.8,
-      delta_tickets: 8.5
+      avg_savings_percent: 0,
+      avg_sla_hours: 0,
+      delta_tickets: 0
     };
 
     if (module === 'M5') {
@@ -71,13 +71,6 @@ export const kpiCalculator = {
   },
 
   getTopSuppliers: (period: DateRange, limit: number = 5): TopSupplier[] => {
-    // Mock data baseado nos fornecedores dos tickets
-    return [
-      { name: 'Parafusos Brasil Ltd', total_spent: 45200.50, order_count: 12 },
-      { name: 'Ferragens Silva & Cia', total_spent: 32100.00, order_count: 8 },
-      { name: 'Logística Global Express', total_spent: 18500.20, order_count: 15 },
-      { name: 'Manutenção Preventiva SA', total_spent: 12400.00, order_count: 4 },
-      { name: 'Viagens & Eventos PR', total_spent: 8900.00, order_count: 6 }
-    ].slice(0, limit);
+    return [];
   }
 };
