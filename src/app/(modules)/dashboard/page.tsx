@@ -18,7 +18,7 @@ import {
   Weight
 } from 'lucide-react';
 
-import { mockApiClient } from '@/lib/api/client.mock';
+// Dashboard usa API real — sem mock em produção
 import { KPICard } from '@/components/dashboard/KPICard';
 import { BarChartNative } from '@/components/dashboard/charts/BarChartNative';
 import { LineChartNative } from '@/components/dashboard/charts/LineChartNative';
@@ -39,10 +39,13 @@ function DashboardContent() {
     const loadData = async () => {
       setIsLoading(true);
       try {
-        const res: any = await mockApiClient.get('/api/dashboard/summary', { period, module });
-        setData(res.data);
+        const qs = new URLSearchParams({ period, module }).toString();
+        const res = await fetch(`/api/dashboard?${qs}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json);
       } catch (err) {
-        console.error(err);
+        console.error('[dashboard]', err);
       } finally {
         setIsLoading(false);
       }
