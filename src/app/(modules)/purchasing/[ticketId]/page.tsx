@@ -6,6 +6,7 @@ import { mockApiClient } from '@/lib/api/client.mock';
 import { PurchaseOrderForm } from '@/components/forms/purchasing/PurchaseOrderForm';
 import { ShoppingCart, Loader2, ArrowLeft, ClipboardList, Info, History, ShieldCheck, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 
 export default function PurchasingDetailPage() {
   const { ticketId } = useParams();
@@ -17,7 +18,8 @@ export default function PurchasingDetailPage() {
     const loadData = async () => {
       try {
         const res: any = await mockApiClient.get(`/api/requests/${ticketId}`);
-        setTicket(res.data);
+        const raw = res.data?.ticket ?? res.data;
+        setTicket(normalizeTicket(raw));
       } catch (err) {
         console.error(err);
       } finally {
@@ -62,7 +64,7 @@ export default function PurchasingDetailPage() {
             </div>
             <div>
               <div className="flex items-center space-x-4 mb-2">
-                <span className="text-xl font-bold text-slate-900">Execução #{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                <span className="text-xl font-bold text-slate-900">Execução #{ticket._ticketNumber}</span>
                 <span className="px-3 py-1 bg-emerald-500/10 text-emerald-500 text-[10px] font-black rounded border border-emerald-500/20 uppercase tracking-widest shadow-lg shadow-emerald-900/10">
                   {ticket.status}
                 </span>
@@ -70,7 +72,7 @@ export default function PurchasingDetailPage() {
               <div className="flex items-center gap-6 text-slate-500 font-bold uppercase tracking-widest text-[10px]">
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-3.5 h-3.5" />
-                  <span>Solicitante: <span className="text-slate-200">{ticket.username}</span></span>
+                  <span>Solicitante: <span className="text-slate-200">{ticket._requester}</span></span>
                 </div>
                 <div className="flex items-center gap-2 border-l border-slate-300 pl-6">
                   <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
@@ -89,7 +91,7 @@ export default function PurchasingDetailPage() {
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">
                    <ClipboardList className="w-4 h-4 mr-2 text-brand" /> Justificativa Original
                 </h4>
-                <p className="text-sm text-slate-400 italic">"{ticket.details?.justificativa}"</p>
+                <p className="text-sm text-slate-400 italic">"{ticket._justificativa}"</p>
              </div>
              <div className="p-6 bg-slate-900/30 rounded-2xl border border-surface-border">
                 <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center">

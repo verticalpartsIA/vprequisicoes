@@ -7,6 +7,7 @@ import { ReceivingForm } from '@/components/forms/receiving/ReceivingForm';
 import { Truck, Loader2, ArrowLeft, ClipboardList, Info, ShieldCheck, Bookmark, FileSearch } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 
 export default function ReceivingDetailPage() {
   const { ticketId } = useParams();
@@ -18,7 +19,8 @@ export default function ReceivingDetailPage() {
     const loadData = async () => {
       try {
         const res: any = await mockApiClient.get(`/api/requests/${ticketId}`);
-        setTicket(res.data);
+        const raw = res.data?.ticket ?? res.data;
+        setTicket(normalizeTicket(raw));
       } catch (err) {
         console.error(err);
       } finally {
@@ -49,7 +51,7 @@ export default function ReceivingDetailPage() {
     );
   }
 
-  const isPhysical = ['M1', 'M4'].includes(ticket.type);
+  const isPhysical = ['M1', 'M4'].includes(ticket._moduleShort);
 
   return (
     <div className="container mx-auto py-10 space-y-8 animate-in fade-in duration-500">
@@ -76,7 +78,7 @@ export default function ReceivingDetailPage() {
               <div className="flex flex-wrap items-center gap-6 text-slate-500 font-black uppercase tracking-widest text-[9px]">
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Requisição: <span className="text-slate-600">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span></span>
+                  <span>Requisição: <span className="text-slate-600">#{ticket._ticketNumber}</span></span>
                 </div>
                 <div className="flex items-center gap-2 border-l border-slate-300 pl-6">
                   <ShieldCheck className="w-3.5 h-3.5 text-brand" />
@@ -106,7 +108,7 @@ export default function ReceivingDetailPage() {
                     <ClipboardList className="w-4 h-4 mr-3 text-brand" /> Resumo do Pedido de Suprimentos
                  </h4>
                  <div className="space-y-4">
-                    <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-brand/30 pl-4">"{ticket.details?.justificativa}"</p>
+                    <p className="text-sm text-slate-400 leading-relaxed italic border-l-2 border-brand/30 pl-4">"{ticket._justificativa}"</p>
                     <div className="mt-8 grid grid-cols-2 gap-4">
                         <div className="p-4 bg-white/50 rounded-2xl border border-surface-border">
                             <span className="text-[8px] text-slate-500 uppercase font-black block mb-1">Fornecedor Orçado</span>

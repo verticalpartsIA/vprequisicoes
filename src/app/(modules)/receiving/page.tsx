@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Truck, Search, ArrowRight, Package, ShieldCheck, MapPin, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { mockApiClient } from '@/lib/api/client.mock';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 
 export default function ReceivingListPage() {
@@ -16,7 +17,8 @@ export default function ReceivingListPage() {
     const fetchData = async () => {
       try {
         const res: any = await mockApiClient.get('/api/receiving/tickets', { status: 'PURCHASED' });
-        setTickets(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setTickets(list.map(normalizeTicket));
       } catch (err) {
         console.error(err);
       } finally {
@@ -61,11 +63,11 @@ export default function ReceivingListPage() {
             <div className="hidden lg:flex items-center gap-6">
               <div className="text-center">
                 <span className="text-[9px] text-slate-400 font-bold uppercase mb-1 block">Físico (M1/M4)</span>
-                <span className="text-sm font-bold text-slate-700">{tickets.filter(t => ['M1', 'M4'].includes(t.type)).length}</span>
+                <span className="text-sm font-bold text-slate-700">{tickets.filter(t => ['M1', 'M4'].includes(t._moduleShort)).length}</span>
               </div>
               <div className="text-center">
                 <span className="text-[9px] text-slate-400 font-bold uppercase mb-1 block">Digital (M2/M3)</span>
-                <span className="text-sm font-bold text-slate-700">{tickets.filter(t => ['M2', 'M3'].includes(t.type)).length}</span>
+                <span className="text-sm font-bold text-slate-700">{tickets.filter(t => ['M2', 'M3'].includes(t._moduleShort)).length}</span>
               </div>
             </div>
           </div>
@@ -103,7 +105,7 @@ export default function ReceivingListPage() {
                   </tr>
                 ) : (
                   tickets.map((ticket) => {
-                    const isPhysical = ['M1', 'M4'].includes(ticket.type);
+                    const isPhysical = ['M1', 'M4'].includes(ticket._moduleShort);
 
                     return (
                       <tr key={ticket.id} className="group hover:bg-slate-50 transition-colors">
@@ -121,11 +123,11 @@ export default function ReceivingListPage() {
                         <td className="py-5">
                           <div className="flex flex-col">
                             <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-slate-700">OC-{ticket.id.toString().padStart(6, '0')}</span>
-                              <span className="text-[10px] font-mono text-slate-400">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                              <span className="text-sm font-bold text-slate-700">OC-{String(ticket.id).padStart(6, '0')}</span>
+                              <span className="text-[10px] font-mono text-slate-400">#{ticket._ticketNumber}</span>
                             </div>
                             <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate max-w-[150px]">
-                              {ticket.details?.justificativa}
+                              {ticket._justificativa}
                             </span>
                           </div>
                         </td>

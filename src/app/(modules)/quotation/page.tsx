@@ -7,6 +7,16 @@ import { ShoppingBag, Search, Filter, ArrowRight, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { mockApiClient } from '@/lib/api/client.mock';
 
+// Normaliza ticket independente de vir do mock ou do Supabase real
+function normalizeTicket(t: any) {
+  const module = t.module ?? t.type ?? '';
+  const moduleShort = module.includes('_') ? module.split('_')[0] : module;
+  const ticketNumber = t.ticket_number ?? `${moduleShort}-${String(t.id).padStart(4, '0')}`;
+  const requester = t.requester_name ?? t.requester_email ?? t.username ?? '—';
+  const submittedAt = t.submitted_at ?? t.submittedAt ?? t.created_at;
+  return { ...t, _moduleShort: moduleShort, _ticketNumber: ticketNumber, _requester: requester, _submittedAt: submittedAt };
+}
+
 export default function QuotationListPage() {
   const [tickets, setTickets] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,8 +25,12 @@ export default function QuotationListPage() {
     const fetchTickets = async () => {
       try {
         const res: any = await mockApiClient.get('/api/requests');
-        const pending = res.data.filter((t: any) => t.status === 'SUBMITTED' || t.status === 'QUOTING');
-        setTickets(pending);
+        const list = Array.isArray(res.data) ? res.data : [];
+        const pending = list.filter((t: any) =>
+          t.status === 'SUBMITTED' || t.status === 'QUOTING' ||
+          t.status === 'submitted' || t.status === 'quoting'
+        );
+        setTickets(pending.map(normalizeTicket));
       } catch (err) {
         console.error(err);
       } finally {
@@ -92,21 +106,23 @@ export default function QuotationListPage() {
                   tickets.map((ticket) => (
                     <tr key={ticket.id} className="group hover:bg-slate-50 transition-colors">
                       <td className="py-4 pl-4">
-                        <span className="font-mono font-bold text-brand text-sm">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                        <span className="font-mono font-bold text-brand text-sm">#{ticket._ticketNumber}</span>
                       </td>
                       <td className="py-4">
                         <span className="text-xs px-2 py-1 bg-slate-100 rounded font-bold text-slate-600 border border-slate-200">
-                          {ticket.type}
+                          {ticket._moduleShort}
                         </span>
                       </td>
                       <td className="py-4">
                         <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-slate-800">{ticket.username}</span>
-                          <span className="text-xs text-slate-400">Almoxarifado</span>
+                          <span className="text-sm font-semibold text-slate-800">{ticket._requester}</span>
+                          <span className="text-xs text-slate-400">{ticket.department_name ?? ticket.departamento ?? 'Almoxarifado'}</span>
                         </div>
                       </td>
                       <td className="py-4">
-                        <span className="text-sm text-slate-500">{new Date(ticket.submittedAt).toLocaleDateString('pt-BR')}</span>
+                        <span className="text-sm text-slate-500">
+                          {ticket._submittedAt ? new Date(ticket._submittedAt).toLocaleDateString('pt-BR') : '—'}
+                        </span>
                       </td>
                       <td className="py-4 text-center">
                         <Clock className="w-4 h-4 text-amber-500 mx-auto" />

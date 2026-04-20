@@ -8,6 +8,7 @@ import Link from 'next/link';
 import { mockApiClient } from '@/lib/api/client.mock';
 import { TierBadge } from '@/components/ui/TierBadge';
 import { canApprove, getApprovalTier } from '@core/validation/approvalTiers';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 
 export default function ApprovalListPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -21,7 +22,8 @@ export default function ApprovalListPage() {
     const fetchTickets = async () => {
       try {
         const res: any = await mockApiClient.get('/api/approval/tickets', { role });
-        setTickets(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setTickets(list.map(normalizeTicket));
       } catch (err) {
         console.error(err);
       } finally {
@@ -98,12 +100,12 @@ export default function ApprovalListPage() {
                     return (
                       <tr key={ticket.id} className="group hover:bg-slate-50 transition-colors">
                         <td className="py-4 pl-4">
-                          <span className="font-mono font-bold text-slate-500 text-sm">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                          <span className="font-mono font-bold text-slate-500 text-sm">#{ticket._ticketNumber}</span>
                         </td>
                         <td className="py-4">
                           <div className="flex flex-col">
-                            <span className="text-sm font-semibold text-slate-800">{ticket.username}</span>
-                            <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-tight">{ticket.details?.departamento || 'Geral'}</span>
+                            <span className="text-sm font-semibold text-slate-800">{ticket._requester}</span>
+                            <span className="text-[10px] text-slate-400 uppercase font-semibold tracking-tight">{ticket._departamento}</span>
                           </div>
                         </td>
                         <td className="py-4">

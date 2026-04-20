@@ -8,6 +8,7 @@ import { QuotationSummaryCard } from '@/components/approval/QuotationSummaryCard
 import { AuditTimeline } from '@/components/approval/AuditTimeline';
 import { ShieldCheck, Loader2, ArrowLeft, ClipboardList, Info, History, AlertCircle, Bookmark } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 
 export default function ApprovalDetailPage() {
   const { ticketId } = useParams();
@@ -24,7 +25,8 @@ export default function ApprovalDetailPage() {
         setUserRole(role);
 
         const res: any = await mockApiClient.get(`/api/requests/${ticketId}`);
-        setTicket(res.data);
+        const raw = res.data?.ticket ?? res.data;
+        setTicket(normalizeTicket(raw));
 
         const auditRes: any = await mockApiClient.get(`/api/approval/tickets/${ticketId}/audit`);
         setAuditLogs(auditRes.data);
@@ -72,7 +74,7 @@ export default function ApprovalDetailPage() {
             </div>
             <div>
               <div className="flex items-center space-x-4 mb-2">
-                <span className="text-xl font-bold text-slate-900">Análise #{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                <span className="text-xl font-bold text-slate-900">Análise #{ticket._ticketNumber}</span>
                 <span className="px-3 py-1 bg-amber-500/10 text-amber-500 text-[10px] font-black rounded border border-amber-500/20 uppercase tracking-widest shadow-lg shadow-amber-900/10">
                   {ticket.status}
                 </span>
@@ -81,13 +83,13 @@ export default function ApprovalDetailPage() {
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-3.5 h-3.5" />
                   <p className="text-xs font-bold uppercase tracking-widest">
-                    Solicitante: <span className="text-slate-200 ml-1">{ticket.username}</span>
+                    Solicitante: <span className="text-slate-200 ml-1">{ticket._requester}</span>
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Bookmark className="w-3.5 h-3.5" />
                   <p className="text-xs font-bold uppercase tracking-widest">
-                    Depto: <span className="text-slate-200 ml-1">{ticket.details?.departamento || 'Global'}</span>
+                    Depto: <span className="text-slate-200 ml-1">{ticket._departamento}</span>
                   </p>
                 </div>
               </div>
@@ -98,7 +100,7 @@ export default function ApprovalDetailPage() {
         <div className="hidden md:flex flex-col items-end">
           <span className="text-[10px] text-slate-500 font-black uppercase tracking-[0.2em] mb-2">Data da Solicitação</span>
           <p className="text-brand font-mono font-black text-lg bg-brand/10 px-3 py-1 rounded-lg border border-brand/20">
-            {new Date(ticket.submittedAt).toLocaleDateString('pt-BR')}
+            {ticket._submittedAt ? new Date(ticket._submittedAt).toLocaleDateString('pt-BR') : '—'}
           </p>
         </div>
       </div>
@@ -115,14 +117,14 @@ export default function ApprovalDetailPage() {
                 <div>
                   <label className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-3">Justificativa Estratégica</label>
                   <p className="text-lg text-slate-600 italic font-medium leading-relaxed bg-brand/5 p-4 rounded-xl border-l-4 border-brand">
-                    "{ticket.details?.justificativa}"
+                    "{ticket._justificativa}"
                   </p>
                 </div>
                 
                 <div className="p-6 bg-white/50 rounded-2xl border border-surface-border">
                   <label className="text-[9px] text-slate-500 uppercase font-black tracking-widest block mb-4 border-b border-surface-border pb-2">Detalhamento dos Itens Originais</label>
                   <div className="space-y-3">
-                    {ticket.details?.itens?.map((item: any, i: number) => (
+                    {ticket._itens?.map((item: any, i: number) => (
                       <div key={i} className="flex justify-between items-center p-3 bg-white rounded-xl border border-slate-200 transition-all hover:border-slate-300">
                         <span className="text-sm font-bold text-slate-200">{item.nome}</span>
                         <div className="flex items-center gap-4">
@@ -135,14 +137,14 @@ export default function ApprovalDetailPage() {
                 </div>
               </div>
             </div>
-          </section>section
+          </section>
 
           <section className="space-y-6">
             <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center">
               <Info className="w-4 h-4 mr-3 text-brand" />
               Resultado da Cotação (Buyer Feedback)
             </h4>
-            <QuotationSummaryCard quotation={ticket.quotation} items={ticket.details?.itens || []} />
+            <QuotationSummaryCard quotation={ticket.quotation} items={ticket._itens || []} />
           </section>
 
           <ApprovalDecisionForm ticket={ticket} userRole={userRole} />

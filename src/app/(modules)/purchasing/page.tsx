@@ -7,6 +7,7 @@ import { ShoppingCart, Filter, ArrowRight, Gavel, Clock } from 'lucide-react';
 import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 import Link from 'next/link';
 import { mockApiClient } from '@/lib/api/client.mock';
+import { normalizeTicket } from '@/lib/utils/normalize-ticket';
 
 export default function PurchasingListPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -16,7 +17,8 @@ export default function PurchasingListPage() {
     const fetchTickets = async () => {
       try {
         const res: any = await mockApiClient.get('/api/purchasing/tickets', { status: 'APPROVED' });
-        setTickets(res.data);
+        const list = Array.isArray(res.data) ? res.data : [];
+        setTickets(list.map(normalizeTicket));
       } catch (err) {
         console.error(err);
       } finally {
@@ -90,7 +92,7 @@ export default function PurchasingListPage() {
                 ) : (
                   tickets.map((ticket) => {
                     const amount = Number(ticket.quotation?.total_amount || 0);
-                    const isUrgent = amount > 1000 || ticket.type === 'M3';
+                    const isUrgent = amount > 1000 || ticket._moduleShort === 'M3';
 
                     return (
                       <tr key={ticket.id} className="group hover:bg-slate-50 transition-colors">
@@ -107,12 +109,12 @@ export default function PurchasingListPage() {
                         </td>
                         <td className="py-5">
                           <div className="flex flex-col">
-                            <span className="font-mono font-bold text-slate-600 text-sm">#{ticket.type}-{ticket.id.toString().padStart(4, '0')}</span>
+                            <span className="font-mono font-bold text-slate-600 text-sm">#{ticket._ticketNumber}</span>
                             <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-tight">Aprovado por Direção</span>
                           </div>
                         </td>
                         <td className="py-5">
-                          <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-600 uppercase">{ticket.type} — Produtos</span>
+                          <span className="px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-[10px] font-bold text-slate-600 uppercase">{ticket._moduleShort} — {ticket.module_name || 'Produtos'}</span>
                         </td>
                         <td className="py-5">
                           <span className="text-sm font-mono font-bold text-slate-900">
