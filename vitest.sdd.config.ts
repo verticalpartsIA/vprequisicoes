@@ -19,13 +19,14 @@ export default defineConfig({
     environment: 'node',
     include: ['**/*.{test,spec}.{ts,tsx}'],
     exclude: [
-      'node_modules',
-      '.next',
-      'dist',
+      '**/node_modules/**',
+      '**/.next/**',
+      '**/dist/**',
       'tests/e2e/**',
-      // tests/sdd/** NÃO está excluído — esse config é usado pelo SDD pipeline
-      // supabase-flow* NÃO está excluído — idem
+      // tests/sdd/** NÃO excluído — esse config é específico para o SDD pipeline
     ],
+    // Sobrescreve qualquer exclude herdado do vitest.config.ts raiz
+    forceRerunTriggers: [],
     setupFiles: ['./vitest.setup.ts'],
   },
 });
