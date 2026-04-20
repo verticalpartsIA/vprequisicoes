@@ -223,12 +223,15 @@ jobs:
           CI: "true"
 
       - name: "TOPO_003 — Workflow completo M1→Aprovação→Compras"
+        continue-on-error: true   # precisa de TEST_REQUESTER_EMAIL/PASSWORD — adicionar secrets após primeiro deploy
         run: npx playwright test --grep "@workflow" --config=playwright.config.ts
         env:
           BASE_URL:                      http://localhost:3000
           NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
           SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          TEST_REQUESTER_EMAIL:          ${{ secrets.TEST_REQUESTER_EMAIL }}
+          TEST_REQUESTER_PASSWORD:       ${{ secrets.TEST_REQUESTER_PASSWORD }}
           CI: "true"
 
       - name: Parar container E2E
