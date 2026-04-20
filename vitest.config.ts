@@ -9,26 +9,37 @@ export default defineConfig({
       '@core': path.resolve(__dirname, './packages/core'),
     },
   },
+
   test: {
     globals: true,
     environment: 'node',
+
     environmentMatchGlobs: [
-      // Testes de componente React precisam de DOM
       ['**/*.integration.test.tsx', 'jsdom'],
       ['**/*.test.tsx', 'jsdom'],
     ],
+
+    // ✔ Testes padrão
     include: ['**/*.{test,spec}.{ts,tsx}'],
+
+    // ✔ Exclusões estratégicas
     exclude: [
       'node_modules',
       '.next',
       'dist',
+
+      // E2E separado
       'tests/e2e/**',
-      // Testes SDD de integração — precisam de env vars Supabase, rodam só no pipeline SDD
+
+      // 🔒 SDD isolado (correto)
       'tests/sdd/**',
-      // Supabase flow — roda só no job sdd-meio-integration com secrets
+
+      // 🔒 Fluxos Supabase isolados
       'packages/core/db/__tests__/supabase-flow*',
     ],
+
     setupFiles: ['./vitest.setup.ts'],
+
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
