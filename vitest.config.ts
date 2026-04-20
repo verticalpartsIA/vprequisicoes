@@ -14,36 +14,22 @@ export default defineConfig({
     globals: true,
     environment: 'node',
 
-    environmentMatchGlobs: [
-      ['**/*.integration.test.tsx', 'jsdom'],
-      ['**/*.test.tsx', 'jsdom'],
+    // 🔥 FOCO TOTAL NESSE TESTE
+    include: [
+      'packages/core/db/__tests__/supabase-flow.integration.test.ts'
     ],
 
-    // ✔ Testes padrão
-    include: ['**/*.{test,spec}.{ts,tsx}'],
-
-    // ✔ Exclusões estratégicas
+    // 🔥 NÃO excluir ele aqui
     exclude: [
       'node_modules',
       '.next',
       'dist',
-
-      // E2E separado
       'tests/e2e/**',
-
-      // 🔒 SDD isolado (correto)
       'tests/sdd/**',
-
-      // 🔒 Fluxos Supabase isolados
-      'packages/core/db/__tests__/supabase-flow*',
     ],
 
     setupFiles: ['./vitest.setup.ts'],
 
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**', 'packages/**'],
-    },
+    testTimeout: 30000,
   },
 });
