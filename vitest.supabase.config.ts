@@ -2,9 +2,10 @@ import { defineConfig } from 'vitest/config';
 import path from 'path';
 
 /**
- * Config especial para rodar o supabase-flow integration test no CI.
- * Igual ao vitest.config.ts mas SEM o exclude de supabase-flow*
- * (esse arquivo é excluído no config padrão para não rodar no npm test local).
+ * CI: job "Supabase — Fluxo real…" e SDD (vitest.sdd) quando apontam para este ficheiro.
+ * Teste pesado: packages/core/db/__tests__/m1-through-release*. Excluído dos scripts
+ * npm em package.json. O ficheiro antigo supabase-flow* era excluído pelo vitest.config
+ * mesclado no CI — renomeado para não bater nesse padrão.
  */
 export default defineConfig({
   resolve: {
@@ -24,7 +25,6 @@ export default defineConfig({
       'dist',
       'tests/e2e/**',
       'tests/sdd/**',
-      // supabase-flow* NÃO está excluído aqui — esse config é usado pelo CI
     ],
     setupFiles: ['./vitest.setup.ts'],
   },

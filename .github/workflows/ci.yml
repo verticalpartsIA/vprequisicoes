@@ -116,8 +116,8 @@ jobs:
       - name: Instalar dependências
         run: npm ci --legacy-peer-deps
       - name: Executar testes Supabase
-        # vitest.supabase.config.ts não tem o exclude de supabase-flow*
-        run: npx vitest run packages/core/db/__tests__/supabase-flow.integration.test.ts --reporter=verbose --config vitest.supabase.config.ts
+        # Ficheiro renomeado de supabase-flow* — o vitest.config mesclado excluía esse padrão no CI
+        run: npx vitest run packages/core/db/__tests__/m1-through-release.integration.test.ts --reporter=verbose --config vitest.supabase.config.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}

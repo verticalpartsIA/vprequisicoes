@@ -14,18 +14,13 @@ export default defineConfig({
     globals: true,
     environment: 'node',
 
-    // 🔥 FOCO TOTAL NESSE TESTE
-    include: [
-      'packages/core/db/__tests__/supabase-flow.integration.test.ts'
-    ],
-
-    // 🔥 NÃO excluir ele aqui
     exclude: [
       'node_modules',
       '.next',
       'dist',
       'tests/e2e/**',
       'tests/sdd/**',
+      'packages/core/db/__tests__/supabase-flow*',
     ],
 
     setupFiles: ['./vitest.setup.ts'],

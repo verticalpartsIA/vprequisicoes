@@ -158,8 +158,8 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       - name: "MEIO — Supabase flow completo M1→RELEASED"
-        continue-on-error: true   # vitest.config.ts exclui supabase-flow*; non-blocking check
-        run: npx vitest run packages/core/db/__tests__/supabase-flow.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
+        continue-on-error: true   # mesmo teste M1→RELEASED; nome de ficheiro evita exclude supabase-flow* do vitest mesclado
+        run: npx vitest run packages/core/db/__tests__/m1-through-release.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
         env:
           NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

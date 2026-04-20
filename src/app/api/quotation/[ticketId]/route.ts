@@ -147,3 +147,46 @@ export async function POST(
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
+
+// ─── PATCH — salvar rascunho ──────────────────────────────────────────────────
+
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Params }
+) {
+  try {
+    const { ticketId } = await params;
+
+    const supabase = await getSupabaseServer();
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Não autenticado' }, { status: 401 });
+    }
+
+    const admin = getSupabaseAdmin();
+    const draftData = await request.json();
+
+    // Salva o rascunho no campo metadata do ticket
+    const { data: ticket } = await admin
+      .from('req_tickets')
+      .select('metadata')
+      .eq('id', ticketId)
+      .maybeSingle();
+
+    if (!ticket) return NextResponse.json({ error: 'Ticket não encontrado' }, { status: 404 });
+
+    const updatedMeta = { ...(ticket.metadata as object ?? {}), quotation_draft: draftData };
+
+    await admin
+      .from('req_tickets')
+      .update({ metadata: updatedMeta })
+      .eq('id', ticketId);
+
+    return NextResponse.json({ ok: true });
+
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : 'Erro interno';
+    console.error('[quotation PATCH]', err);
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}

@@ -11,14 +11,17 @@ import { maintenanceHandlers } from './mock/maintenance-handlers';
 import { mockFreightRequestHandler } from './mock/freight-handlers';
 import { mockRentalRequestHandler, mockRentalListHandler } from './mock/rental-handlers';
 
-const USE_MOCK = true; // Forçado para desenvolvimento SDD
+// USE_MOCK = false → dados reais no Supabase via rotas Next.js
+// USE_MOCK = true  → dados em memória (desenvolvimento offline)
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
 
 import { mockTicketList } from '@core/db/mock-db';
+import { realGet, realPost, realPatch } from './real-client';
 
 
 export const mockApiClient = {
   async get(path: string, params?: any) {
-    if (!USE_MOCK) throw new Error("Mock desativado. Use o cliente real.");
+    if (!USE_MOCK) return realGet(path, params);
 
     if (path === '/api/requests') {
       return { status: 'success', data: mockTicketList };
@@ -90,7 +93,7 @@ export const mockApiClient = {
   },
 
   async post(path: string, body: any) {
-    if (!USE_MOCK) throw new Error("Mock desativado. Use o cliente real.");
+    if (!USE_MOCK) return realPost(path, body);
 
     if (path === '/api/requests/travel') {
       return { status: 'success', data: mockTravelRequestHandler(body) };
@@ -159,7 +162,7 @@ export const mockApiClient = {
   },
 
   async patch(path: string, body: any) {
-    if (!USE_MOCK) throw new Error("Mock desativado. Use o cliente real.");
+    if (!USE_MOCK) return realPatch(path, body);
 
     if (path.includes('/api/quotation/tickets/') && path.endsWith('/draft')) {
       const parts = path.split('/');
