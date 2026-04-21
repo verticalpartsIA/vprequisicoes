@@ -23,7 +23,6 @@ export default defineConfig({
       '.next',
       'dist',
       'tests/e2e/**',
-      'tests/sdd/**',
       '**/db/__tests__/supabase-flow*',
       '**/db/__tests__/m1-through-release*',
     ],

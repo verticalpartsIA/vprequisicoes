@@ -18,7 +18,7 @@ export default defineConfig({
     name: 'sdd',
     globals: true,
     environment: 'node',
-    include: ['**/*.{test,spec}.{ts,tsx}'],
+    include: ['tests/sdd/**/*.{test,spec}.{ts,tsx}'],
     exclude: [
       '**/node_modules/**',
       '**/.next/**',

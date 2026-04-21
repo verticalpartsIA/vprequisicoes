@@ -14,12 +14,16 @@ export default defineConfig({
     globals: true,
     environment: 'node',
 
+    include: [
+      'src/**/*.{test,spec}.{ts,tsx}',
+      'packages/**/*.{test,spec}.{ts,tsx}'
+    ],
+
     exclude: [
       'node_modules',
       '.next',
       'dist',
       'tests/e2e/**',
-      'tests/sdd/**',
       'packages/core/db/__tests__/supabase-flow*',
     ],
 
