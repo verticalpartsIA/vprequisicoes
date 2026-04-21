@@ -126,18 +126,38 @@ describe('[SDD BASE_001] Existência das funções RPC', () => {
 
 describe('[SDD BASE_001] Estrutura crítica da tabela req_tickets', () => {
   it('aceita insert com todos campos obrigatórios', async () => {
-    // Cria departamento temporário
+    // 1. Garante um departamento
     const { data: dept } = await db
       .from('req_departments')
-      .insert({ name: `SDD-SCHEMA-TEST-${Date.now()}`, cost_center: 'SDD' })
+      .upsert({ name: 'SDD-DEP-TEST', cost_center: 'SDD' })
       .select('id').single();
 
-    const fakeUserId = crypto.randomUUID();
-    await db.from('req_profiles').insert({
-      id: fakeUserId, full_name: 'SDD Test', email: `sdd-${Date.now()}@test.com`,
-      role: 'requester', department_id: dept!.id,
+    // 2. Tenta encontrar um usuário de teste ou criar um real no auth.users
+    // Usamos service_role para poder criar usuários diretamente
+    const testEmail = `sdd-test-${Date.now()}@verticalparts.com.br`;
+    const { data: authUser, error: authErr } = await db.auth.admin.createUser({
+      email: testEmail,
+      password: 'sdd-test-password',
+      email_confirm: true,
+      user_metadata: { full_name: 'SDD Test User' }
     });
 
+    if (authErr && !authErr.message.includes('already registered')) {
+       throw new Error(`Falha ao criar usuário de teste no auth: ${authErr.message}`);
+    }
+
+    const userId = authUser?.user?.id;
+
+    // Garante que o perfil existe (geralmente existe trigger, mas garantimos)
+    await db.from('req_profiles').upsert({
+      id: userId,
+      full_name: 'SDD Test User',
+      email: testEmail,
+      role: 'requester',
+      department_id: dept!.id,
+    });
+
+    // 3. Gera número e insere ticket
     const { data: tn } = await db.rpc('req_generate_ticket_number', { p_module: 'M1_PRODUTOS' });
 
     const { data, error } = await db.from('req_tickets').insert({
@@ -147,17 +167,16 @@ describe('[SDD BASE_001] Estrutura crítica da tabela req_tickets', () => {
       status: 'DRAFT',
       priority: 'normal',
       department_id: dept!.id,
-      requester_id: fakeUserId,
+      requester_id: userId,
       metadata: {},
     }).select('id, status').single();
 
     expect(error, `Insert em req_tickets falhou: ${error?.message}`).toBeNull();
     expect(data?.status).toBe('DRAFT');
 
-    // Limpeza
+    // Limpeza (opcional em schema test, mas boa prática)
     if (data?.id) await db.from('req_tickets').delete().eq('id', data.id);
-    await db.from('req_profiles').delete().eq('id', fakeUserId);
-    if (dept?.id) await db.from('req_departments').delete().eq('id', dept.id);
+    if (userId) await db.auth.admin.deleteUser(userId);
   });
 
   it('rejeita status fora do enum', async () => {
