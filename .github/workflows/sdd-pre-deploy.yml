@@ -146,12 +146,18 @@ jobs:
         continue-on-error: true   # vitest.config.ts exclui tests/sdd/**; validação real é MEIO abaixo
         run: npx vitest run tests/sdd/MEIO_001_api-integration.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
         env:
-          NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          BASE_URL:                  http://localhost:3000
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BASE_URL:                      http://localhost:3000
 
       - name: "MEIO — Testes unitários + integração mock M1-M6 (102 testes)"
         run: npm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_USE_MOCK:          true
         # 102 testes cobrindo toda a lógica de negócio — sempre verdes, sem Supabase
 
       - name: "MEIO — Supabase flow completo M1→RELEASED (requer usuários de teste)"

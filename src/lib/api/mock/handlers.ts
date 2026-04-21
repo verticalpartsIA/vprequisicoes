@@ -21,6 +21,7 @@ export const mockProductRequestHandler = async (data: any) => {
       module: "M1",
       requester_name: data.solicitante,
       submitted_at: new Date().toISOString(),
+      next_step: "quotation",
     }
   };
 

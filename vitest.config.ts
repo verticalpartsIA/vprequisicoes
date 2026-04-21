@@ -19,6 +19,7 @@ export default defineConfig({
       '.next',
       'dist',
       'tests/e2e/**',
+      'tests/sdd/**',
       'packages/core/db/__tests__/supabase-flow*',
     ],
 
