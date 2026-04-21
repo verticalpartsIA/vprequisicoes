@@ -13,6 +13,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import { randomUUID } from 'node:crypto';
 import { describe, it, expect, afterAll, beforeAll } from 'vitest';
 import type { Database } from '../../../../src/lib/supabase/types';
 
@@ -32,12 +33,13 @@ function getAdminClient() {
 // ─── IDs criados durante o teste (para limpeza) ───────────────────────────────
 const created = {
   departmentId: '',
-  requesterId:  '',
-  approverId:   '',
-  supplierId:   '',
-  ticketId:     '',
-  quotationId:  '',
-  approvalId:   '',
+  requesterId: '',
+  approverId: '',
+  supplierId: '',
+  ticketId: '',
+  quotationId: '',
+  approvalId: '',
+  authUserIds: [] as string[],
 };
 
 // ─── Prefixo único por execução para evitar colisões ─────────────────────────
@@ -82,43 +84,63 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Setup de dados de teste', () => {
   });
 
   it('cria perfil requester de teste', async () => {
-    const fakeId = crypto.randomUUID();
+    const email = `req-${RUN_ID}@test.com`;
+    // Cria usuário real no Auth para satisfazer FK
+    const { data: authUser, error: authError } = await db.auth.admin.createUser({
+      email,
+      password: 'password123',
+      email_confirm: true
+    });
+
+    if (authError) throw authError;
+    const authId = authUser.user.id;
+
     const { data, error } = await db
       .from('req_profiles')
-      .insert({
-        id:            fakeId,
-        full_name:     `Requester-${RUN_ID}`,
-        email:         `req-${RUN_ID}@ci.test`,
-        role:          'requester',
+      .upsert({
+        id: authId,
+        full_name: `Requester ${RUN_ID}`,
+        email,
+        role: 'requester',
         department_id: created.departmentId,
-        approval_tier: 0,
-        approval_limit: 0,
       })
       .select('id')
       .single();
 
     expect(error).toBeNull();
     created.requesterId = data!.id;
+    created.authUserIds.push(authId); // Para limpeza no afterAll
   });
 
   it('cria perfil approver de teste', async () => {
-    const fakeId = crypto.randomUUID();
+    const email = `app-${RUN_ID}@test.com`;
+    // Cria usuário real no Auth para satisfazer FK
+    const { data: authUser, error: authError } = await db.auth.admin.createUser({
+      email,
+      password: 'password123',
+      email_confirm: true
+    });
+
+    if (authError) throw authError;
+    const authId = authUser.user.id;
+
     const { data, error } = await db
       .from('req_profiles')
-      .insert({
-        id:             fakeId,
-        full_name:      `Approver-${RUN_ID}`,
-        email:          `apr-${RUN_ID}@ci.test`,
-        role:           'approver',
-        department_id:  created.departmentId,
-        approval_tier:  1,
-        approval_limit: 50000,
+      .upsert({
+        id: authId,
+        full_name: `Approver ${RUN_ID}`,
+        email,
+        role: 'approver',
+        department_id: created.departmentId,
+        approval_tier: 1,
+        approval_limit: 100000,
       })
       .select('id')
       .single();
 
     expect(error).toBeNull();
     created.approverId = data!.id;
+    created.authUserIds.push(authId);
   });
 
   it('cria fornecedor de teste', async () => {
@@ -143,6 +165,10 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo M1 — Criação e Submissão d
 
   it('cria ticket M1 como DRAFT', async () => {
     const ticketNumber = `M1-${RUN_ID}`;
+
+    if (!created.requesterId || !created.departmentId) {
+      throw new Error(`Setup inconsistente: requesterId=${created.requesterId}, deptId=${created.departmentId}`);
+    }
 
     const { data, error } = await db
       .from('req_tickets')
@@ -173,7 +199,9 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo M1 — Criação e Submissão d
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('SUBMITTED');
+    // RPC pode retornar array ou objeto dependendo da versão/config
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('SUBMITTED');
   });
 });
 
@@ -190,7 +218,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Cotação — SUBMITTED → QUO
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('QUOTING');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('QUOTING');
   });
 
   it('cria cotação do fornecedor', async () => {
@@ -231,7 +260,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Cotação — SUBMITTED → QUO
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('PENDING_APPROVAL');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('PENDING_APPROVAL');
   });
 });
 
@@ -274,7 +304,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Aprovação — PENDING_APPROVA
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('APPROVED');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('APPROVED');
   });
 });
 
@@ -291,7 +322,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Compras — APPROVED → PURCHA
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('PURCHASING');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('PURCHASING');
   });
 
   it('transiciona ticket para RECEIVING', async () => {
@@ -302,7 +334,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Compras — APPROVED → PURCHA
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('RECEIVING');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('RECEIVING');
   });
 
   it('finaliza ticket com status RELEASED', async () => {
@@ -314,7 +347,8 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Compras — APPROVED → PURCHA
     });
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('RELEASED');
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('RELEASED');
   });
 
   it('ticket no banco está como RELEASED (verificação final)', async () => {
@@ -325,8 +359,9 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Fluxo Compras — APPROVED → PURCHA
       .single();
 
     expect(error).toBeNull();
-    expect(data?.status).toBe('RELEASED');
-    expect(data?.approved_at).toBeTruthy();
+    const ticket = Array.isArray(data) ? data[0] : data;
+    expect(ticket?.status).toBe('RELEASED');
+    expect(ticket?.approved_at).toBeTruthy();
     expect(data?.purchased_at).toBeTruthy();
     expect(data?.received_at).toBeTruthy();
     expect(data?.released_at).toBeTruthy();
@@ -338,14 +373,19 @@ describe.skipIf(!HAS_SUPABASE)('[Supabase] Limpeza de dados de teste', () => {
   const db = getAdminClient();
 
   afterAll(async () => {
-    // Ordem importa por dependências de FK
-    if (created.approvalId)   await db.from('req_approvals').delete().eq('id', created.approvalId);
-    if (created.quotationId)  await db.from('req_quotations').delete().eq('id', created.quotationId);
-    if (created.ticketId)     await db.from('req_tickets').delete().eq('id', created.ticketId);
-    if (created.supplierId)   await db.from('req_suppliers').delete().eq('id', created.supplierId);
-    if (created.approverId)   await db.from('req_profiles').delete().eq('id', created.approverId);
-    if (created.requesterId)  await db.from('req_profiles').delete().eq('id', created.requesterId);
-    if (created.departmentId) await db.from('req_departments').delete().eq('id', created.departmentId);
+    if (created.ticketId) {
+      await db.from('req_tickets').delete().eq('id', created.ticketId);
+    }
+    if (created.departmentId) {
+      await db.from('req_departments').delete().eq('id', created.departmentId);
+    }
+    if (created.supplierId) {
+      await db.from('req_suppliers').delete().eq('id', created.supplierId);
+    }
+    // Perfis são deletados via ON DELETE CASCADE se deletarmos os usuários do Auth
+    for (const authId of created.authUserIds) {
+      await db.auth.admin.deleteUser(authId);
+    }
   });
 
   it('placeholder — limpeza ocorre no afterAll', () => {

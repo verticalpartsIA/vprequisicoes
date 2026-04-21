@@ -74,7 +74,7 @@ for (const mod of MODULES) {
     test(`${mod.route} carrega sem erro @modules`, async ({ page }) => {
       await page.goto(mod.route);
       // Aguarda navegação estabilizar
-      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 15_000 });
       // Aceitável: está na rota correta OU foi redirecionado para /login (rota protegida)
       const { isOnLogin } = await expectPageOrLogin(page, mod.route);
       if (isOnLogin) {
@@ -88,7 +88,7 @@ for (const mod of MODULES) {
 
     test(`${mod.route} exibe cabeçalho do módulo @modules`, async ({ page }) => {
       await page.goto(mod.route);
-      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 15_000 });
       const { isOnLogin } = await expectPageOrLogin(page, mod.route);
       if (isOnLogin) {
         // Sem auth no CI — pula verificação de conteúdo autenticado
@@ -98,13 +98,15 @@ for (const mod of MODULES) {
       // Verifica título do módulo (M1, M2, etc.)
       const moduleCode = mod.route.replace('/', '').toUpperCase();
       await expect(
-        page.getByText(new RegExp(moduleCode, 'i')).first()
-      ).toBeVisible({ timeout: 10_000 });
+        page.getByRole('heading', { name: new RegExp(moduleCode, 'i') }).or(
+          page.getByText(new RegExp(moduleCode, 'i'))
+        ).first()
+      ).toBeVisible({ timeout: 15_000 });
     });
 
     test(`${mod.route} bloqueia envio vazio com validação @modules`, async ({ page }) => {
       await page.goto(mod.route);
-      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 15_000 });
       const { isOnLogin } = await expectPageOrLogin(page, mod.route);
       if (isOnLogin) {
         // Sem auth no CI — pula validação de formulário
@@ -126,7 +128,7 @@ for (const mod of MODULES) {
 
     test(`${mod.route} renderiza campos principais @modules`, async ({ page }) => {
       await page.goto(mod.route);
-      await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+      await page.waitForLoadState('networkidle', { timeout: 15_000 });
       const { isOnLogin } = await expectPageOrLogin(page, mod.route);
       if (isOnLogin) {
         // Sem auth no CI — pula verificação de campos
@@ -150,28 +152,28 @@ test.describe('@modules — Páginas de workflow', () => {
 
   test('/quotation carrega lista de cotações @modules', async ({ page }) => {
     await page.goto('/quotation');
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
     await expectPageOrLogin(page, '/quotation');
     await expect(page.getByRole('heading')).toBeVisible({ timeout: 10_000 });
   });
 
   test('/approval carrega lista de aprovações @modules', async ({ page }) => {
     await page.goto('/approval');
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
     await expectPageOrLogin(page, '/approval');
     await expect(page.getByRole('heading')).toBeVisible({ timeout: 10_000 });
   });
 
   test('/purchasing carrega console de compras @modules', async ({ page }) => {
     await page.goto('/purchasing');
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
     await expectPageOrLogin(page, '/purchasing');
     await expect(page.getByRole('heading')).toBeVisible({ timeout: 10_000 });
   });
 
   test('/receiving carrega painel de recebimento @modules', async ({ page }) => {
     await page.goto('/receiving');
-    await page.waitForLoadState('networkidle', { timeout: 15_000 }).catch(() => {});
+    await page.waitForLoadState('networkidle', { timeout: 15_000 });
     await expectPageOrLogin(page, '/receiving');
     await expect(page.getByRole('heading')).toBeVisible({ timeout: 10_000 });
   });

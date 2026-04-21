@@ -161,14 +161,18 @@ describe('[SDD BASE_001] Estrutura crítica da tabela req_tickets', () => {
   });
 
   it('rejeita status fora do enum', async () => {
+    // Busca um departamento e usuário reais para evitar erro de FK
+    const { data: dept } = await db.from('req_departments').select('id').limit(1).single();
+    const { data: user } = await db.from('req_profiles').select('id').limit(1).single();
+
     const { error } = await db.from('req_tickets').insert({
       ticket_number: 'INVALID-999',
       title: 'Bad',
       module: 'M1_PRODUTOS',
       status: 'INEXISTENTE' as any,
       priority: 'normal',
-      department_id: crypto.randomUUID(),
-      requester_id:  crypto.randomUUID(),
+      department_id: dept?.id,
+      requester_id:  user?.id,
       metadata: {},
     }).select();
     expect(error).not.toBeNull();
