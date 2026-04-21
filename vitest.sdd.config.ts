@@ -15,6 +15,7 @@ export default defineConfig({
     },
   },
   test: {
+    name: 'sdd',
     globals: true,
     environment: 'node',
     include: ['**/*.{test,spec}.{ts,tsx}'],
