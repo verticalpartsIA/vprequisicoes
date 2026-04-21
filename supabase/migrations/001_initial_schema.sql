@@ -308,6 +308,7 @@ BEGIN
   END;
 END;
 $$;
+DROP FUNCTION IF EXISTS public.req_transition_ticket(uuid, public.req_ticket_status, uuid, text);
 
 CREATE OR REPLACE FUNCTION public.req_transition_ticket(
   p_ticket_id  UUID,
