@@ -11,16 +11,25 @@ export const mockProductRequestHandler = async (data: any) => {
   const timestamp = new Date().getTime();
   const randomTicket = Math.floor(100000 + Math.random() * 900000);
 
-  return {
-    status: "success",
+  const res = {
+    status: "success" as const,
     data: {
+      id: timestamp,
       request_id: `REQ-${timestamp}`,
       ticket_number: `M1-${randomTicket}`,
-      status: "submitted",
-      next_step: "quotation",
+      status: "SUBMITTED",
+      module: "M1",
+      requester_name: data.solicitante,
       submitted_at: new Date().toISOString(),
     }
   };
+
+  if (typeof window !== 'undefined') {
+    const { mockTicketList } = require('@core/db/mock-db');
+    mockTicketList.unshift(res.data);
+  }
+
+  return res;
 };
 
 export const getMockRequestHandler = async (id: string) => {
