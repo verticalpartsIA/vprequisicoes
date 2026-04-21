@@ -20,7 +20,7 @@ from urllib.parse import parse_qs, unquote, urlparse
 
 
 def main() -> None:
-    url = os.environ.get("DATABASE_URL")
+    url = os.environ.get("DATABASE_URL", "").strip()
     if not url:
         print("::error::DATABASE_URL is not set", file=sys.stderr)
         sys.exit(1)
