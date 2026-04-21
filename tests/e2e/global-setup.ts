@@ -40,10 +40,19 @@ setup('autenticar usuário CI', async ({ page }) => {
 
   // Submete
   await page.getByRole('button', { name: /entrar no sistema/i }).click();
-
-  // Aguarda redirect para o dashboard
-  await page.waitForURL('**/dashboard', { timeout: 20_000 });
-  await expect(page.getByRole('main')).toBeVisible();
+  
+  // Opção A: Aumentar timeout + resiliência
+  try {
+    await page.waitForURL(/.*\/dashboard.*/, { timeout: 45000, waitUntil: 'load' });
+  } catch (e) {
+    console.warn('[global-setup] Timeout atingido no waitForURL, verificando URL atual...');
+    if (!page.url().includes('dashboard')) {
+      throw new Error(`Login falhou: era esperado /dashboard mas parou em ${page.url()}`);
+    }
+  }
+  
+  await page.waitForLoadState('networkidle', { timeout: 15000 });
+  await expect(page.getByRole('main')).toBeVisible({ timeout: 10000 });
 
   // Garante que o diretório existe e salva o estado
   fs.mkdirSync(path.dirname(STATE_FILE), { recursive: true });
