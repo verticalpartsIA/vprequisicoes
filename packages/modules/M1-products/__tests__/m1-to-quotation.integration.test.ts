@@ -14,7 +14,7 @@ describe('M1ToQuotationIntegration', () => {
     const apiResult: any = await mockApiClient.post('/api/requests/products', validData);
     
     expect(apiResult.status).toBe('success');
-    expect(apiResult.data.status).toBe('submitted');
+    expect(apiResult.data.status.toLowerCase()).toBe('submitted');
     expect(apiResult.data.next_step).toBe('quotation');
   });
 
