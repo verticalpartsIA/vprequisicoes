@@ -188,7 +188,7 @@ describe('[SDD BASE_001] Enum req_ticket_status completo', () => {
         p_to:   status,
       });
       // Pode retornar false (transição inválida) mas não deve dar erro de enum
-      expect(error?.message).not.toContain('invalid input value for enum');
+      expect(error?.message || '').not.toContain('invalid input value for enum');
     }
   });
 });
