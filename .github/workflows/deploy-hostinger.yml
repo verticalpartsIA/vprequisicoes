@@ -29,14 +29,25 @@ jobs:
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         NEXT_PUBLIC_USE_MOCK: false
 
-    - name: 📂 Sync files via SFTP (Hostinger)
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+    - name: 📂 Sync files via FTP (Hostinger)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        port: 65002
-        local_path: './'
-        remote_path: './'
-        delete_remote_files: false
-        args: '-o ConnectTimeout=5'
+        local-dir: ./
+        server-dir: ./public_html/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          **/node_modules/**
+          **/src/**
+          **/tests/**
+          **/public/mock-data/**
+          .env.local
+          tsconfig.json
+          tailwind.config.js
+          README.md
+          github-push-v11.ps1
+          deploy-manual-hostinger.ps1
+          vprequisicoes-deploy.zip
