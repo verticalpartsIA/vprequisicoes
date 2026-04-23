@@ -1,0 +1,13 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Permitir acesso à pasta _next
+  RewriteCond %{REQUEST_URI} ^/_next/ [NC]
+  RewriteRule . - [L]
+
+  # Regras para rotas limpas
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule . /index.html [L]
+</IfModule>

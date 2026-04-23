@@ -1,0 +1,12 @@
+/* Generated from src/styles/legacy/tokens.ts */
+:root {
+  --brand-primary: #f59e0b;
+  --brand-dark: #d97706;
+  --surface-bg: #0f172a;
+  --surface-card: #1e293b;
+  --surface-border: #334155;
+  --text-primary: #f1f5f9;
+  --text-secondary: #9ca3af;
+  --text-muted: #64748b;
+  --font-sans: 'Montserrat', 'Inter', sans-serif;
+}

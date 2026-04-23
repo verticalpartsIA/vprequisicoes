@@ -1,0 +1,177 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  username  String   @unique @db.VarChar(64)
+  password  String   @db.VarChar(255)
+  role      Role     @default(common)
+  createdAt DateTime @default(now()) @map("created_at")
+  requests  Request[]
+
+  @@map("users")
+}
+
+enum Role {
+  admin
+  common
+  manager_level_1
+  manager_level_2
+  director
+  buyer
+}
+
+model Request {
+  id           Int           @id @default(autoincrement())
+  userId       Int           @map("user_id")
+  username     String        @db.VarChar(64)
+  type         String        @db.VarChar(32) // M1, M2...
+  status       String        @db.VarChar(32) // Usando String para flexibilidade com a FSM
+  details      Json?
+  mainFilePath String?       @map("main_file_path") @db.VarChar(255)
+  submittedAt  DateTime      @default(now()) @map("submitted_at")
+  
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quotation    Quotation?
+  approvalDetails ApprovalDecision?
+  auditLogs    ApprovalAuditLog[]
+
+  @@map("requests")
+}
+
+model ApprovalDecision {
+  id                    String               @id @default(uuid())
+  ticketId              Int                  @unique @map("ticket_id")
+  ticket                Request              @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  decision              ApprovalDecisionType
+  reason                String?              @db.Text
+  decidedBy             String               @map("decided_by")
+  decidedAt             DateTime             @default(now()) @map("decided_at")
+  approvalTier          Int                  @map("approval_tier")
+  userRoleAtDecision    String               @map("user_role_at_decision")
+  previousStatus        String               @map("previous_status")
+  nextStatus            String               @map("next_status")
+
+  @@map("approval_decisions")
+}
+
+model ApprovalAuditLog {
+  id          String   @id @default(uuid())
+  ticketId    Int      @map("ticket_id")
+  ticket      Request  @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  action      String
+  performedBy String   @map("performed_by")
+  performedAt DateTime @default(now()) @map("performed_at")
+  metadata    Json?
+
+  @@map("approval_audit_logs")
+}
+
+enum ApprovalDecisionType {
+  approved
+  rejected
+  revision_requested
+}
+
+
+model Quotation {
+  id           String           @id @default(uuid())
+  requestId    Int              @unique @map("request_id")
+  request      Request          @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  status       QuotationStatus  @default(draft)
+  items        QuotationItem[]
+  totalAmount  Decimal          @map("total_amount") @db.Decimal(10,2)
+  currency     String           @default("BRL")
+  createdBy    String           @map("created_by")
+  createdAt    DateTime         @default(now()) @map("created_at")
+  submittedAt  DateTime?        @map("submitted_at")
+
+  @@map("quotations")
+}
+
+model QuotationItem {
+  id            String              @id @default(uuid())
+  quotationId   String              @map("quotation_id")
+  quotation     Quotation           @relation(fields: [quotationId], references: [id], onDelete: Cascade)
+  requestItemId String              @map("request_item_id")
+  suppliers     QuotationSupplier[]
+  selectedId    String?             @map("selected_supplier_id")
+  notes         String?             @db.Text
+
+  @@map("quotation_items")
+}
+
+model QuotationSupplier {
+  id           String        @id @default(uuid())
+  itemId       String        @map("item_id")
+  item         QuotationItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  name         String        @db.VarChar(255)
+  price        Decimal       @db.Decimal(10,2)
+  deliveryDays Int           @map("delivery_days")
+  observations String?       @db.Text
+  isWinner     Boolean       @default(false) @map("is_winner")
+
+  @@map("quotation_suppliers")
+}
+
+enum QuotationStatus {
+  draft
+  submitted
+  approved
+  rejected
+}
+
+model PurchaseOrder {
+  id               String              @id @default(uuid())
+  ticketId         Int                 @unique @map("ticket_id")
+  ocNumber         String              @unique @map("oc_number")
+  method           PurchaseMethod
+  supplierId       String              @map("supplier_id")
+  supplierName     String              @map("supplier_name")
+  items            PurchaseOrderItem[]
+  totalAmount      Decimal             @map("total_amount") @db.Decimal(10,2)
+  currency         String              @default("BRL")
+  deliveryAddress  String              @map("delivery_address") @db.Text
+  paymentTerms     String?             @map("payment_terms")
+  issuedAt         DateTime            @default(now()) @map("issued_at")
+  pdfUrl           String?             @map("pdf_url")
+
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id            String        @id @default(uuid())
+  orderId       String        @map("order_id")
+  order         PurchaseOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  description   String
+  quantity      Int
+  unitPrice     Decimal       @map("unit_price") @db.Decimal(10,2)
+  subtotal      Decimal       @db.Decimal(10,2)
+
+  @@map("purchase_order_items")
+}
+
+model AuctionLog {
+  id              String    @id @default(uuid())
+  ticketId        Int       @map("ticket_id")
+  auctionId       String    @map("auction_id")
+  startedAt       DateTime  @default(now()) @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+  winningSupplier String    @map("winning_supplier")
+  finalPrice      Decimal   @map("final_price") @db.Decimal(10,2)
+  participants    Int
+  logEntries      Json?     @map("log_entries")
+
+  @@map("auction_logs")
+}
+
+enum PurchaseMethod {
+  auction
+  direct
+}

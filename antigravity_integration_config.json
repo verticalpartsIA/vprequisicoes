@@ -1,0 +1,69 @@
+{
+  "version": "1.2.0",
+  "environment": "staging",
+  "project_name": "VPRequisições",
+  "stack": {
+    "frontend": "Next.js 14 (App Router)",
+    "backend": "Supabase (PostgreSQL + Auth + Realtime)",
+    "styling": "Tailwind CSS + Lucide Icons"
+  },
+  "global": {
+    "auth": "Supabase Auth",
+    "persistence": "PostgreSQL (Supabase)",
+    "observability": {
+      "logs": "req_audit_logs",
+      "notifications": "req_notifications"
+    }
+  },
+  "modules": [
+    {
+      "id": "M1",
+      "name": "products",
+      "label": "Produtos",
+      "flow_step": "INGEST",
+      "endpoint": "/products"
+    },
+    {
+      "id": "M2",
+      "name": "travel",
+      "label": "Viagens",
+      "flow_step": "INGEST",
+      "endpoint": "/travel"
+    },
+    {
+      "id": "M3",
+      "name": "services",
+      "label": "Serviços",
+      "flow_step": "INGEST",
+      "endpoint": "/services"
+    },
+    {
+      "id": "M4",
+      "name": "maintenance",
+      "label": "Manutenção",
+      "flow_step": "INGEST",
+      "endpoint": "/maintenance"
+    },
+    {
+      "id": "M5",
+      "name": "freight",
+      "label": "Frete",
+      "flow_step": "INGEST",
+      "endpoint": "/freight"
+    },
+    {
+      "id": "M6",
+      "name": "rental",
+      "label": "Locação",
+      "flow_step": "INGEST",
+      "endpoint": "/rental"
+    }
+  ],
+  "process_flow": [
+    { "step": "V1", "action": "SUBMIT", "status": "SUBMITTED" },
+    { "step": "V2", "action": "QUOTE", "status": "QUOTING" },
+    { "step": "V3", "action": "APPROVE", "status": "PENDING_APPROVAL" },
+    { "step": "V4", "action": "PURCHASE", "status": "PURCHASING" },
+    { "step": "V5", "action": "RECEIVE", "status": "RECEIVING" }
+  ]
+}

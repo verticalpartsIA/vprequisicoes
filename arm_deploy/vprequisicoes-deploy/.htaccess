@@ -1,0 +1,17 @@
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # Redireciona para HTTPS (Opcional, mas recomendado no Hostinger)
+  # RewriteCond % {HTTPS} off
+  # RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # Se o arquivo solicitado existe, serve ele normalmente
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Se o arquivo NÃO existe (ex: /dashboard, /approval/123), manda para o index.html
+  # O Next.js Router vai assumir a partir daí
+  RewriteRule ^ index.html [L]
+</IfModule>

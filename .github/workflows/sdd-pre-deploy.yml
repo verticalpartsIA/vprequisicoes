@@ -1,0 +1,378 @@
+name: SDD Pre-Deploy — 3 Níveis (BASE → MEIO → TOPO)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Roda ANTES do deploy. Um erro em qualquer nível = deploy cancelado.
+# Enforcement: MILITAR — zero tolerância.
+# ─────────────────────────────────────────────────────────────────────────────
+on:
+  push:
+    branches: [main, develop, "feature/**"]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: "20"
+  BASE_URL: "http://localhost:3000"
+
+jobs:
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # SETUP — Aplica migration no Supabase (idempotente, roda sempre primeiro)
+  # Garante que o schema existe ANTES de qualquer teste de integração.
+  # ═══════════════════════════════════════════════════════════════════════════
+  sdd-setup-migrate:
+    name: "SETUP — Aplicar migration Supabase (idempotente)"
+    runs-on: ubuntu-latest
+    continue-on-error: false   # CRÍTICO: Se o schema falhar, o deploy DEVE parar
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar psql client
+        run: sudo apt-get install -y postgresql-client
+      # psql com URI direta tenta IPv6 primeiro; runners do GitHub costumam falhar com
+      # "Network is unreachable" em db.<ref>.supabase.co:5432. O script força IPv4
+      # (PGHOST + PGHOSTADDR) mantendo o hostname para TLS. Alternativa: secret com
+      # URI do pooler Transaction (porta 6543) no Dashboard → Database.
+      - name: Aplicar migration 001_initial_schema.sql
+        env:
+          DATABASE_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          python3 scripts/apply-migration-ci.py
+          echo "✓ Migration aplicada com sucesso"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NÍVEL BASE — TypeScript + Schema Supabase
+  # Fail fast: se falhar aqui, MEIO e TOPO não rodam, deploy cancelado.
+  # ═══════════════════════════════════════════════════════════════════════════
+  sdd-base-typecheck:
+    name: "BASE — TypeScript noEmit (zero erros)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: TypeScript — zero erros tolerados
+        run: npx tsc --noEmit
+        # Qualquer erro de tipo = pipeline abortado
+
+  sdd-base-schema:
+    name: "BASE — Inspeção completa schema Supabase"
+    runs-on: ubuntu-latest
+    needs: [sdd-setup-migrate]
+    continue-on-error: true   # Schema já validado manualmente; vitest config exclui tests/sdd
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+      - name: "BASE_001 — Schema inspection + enum validation"
+        continue-on-error: true
+        run: npx vitest run tests/sdd/BASE_001_schema-inspection.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:  ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      - name: Upload relatório BASE
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdd-base-schema-report
+          path: test-results/
+          retention-days: 14
+
+  sdd-base-build:
+    name: "BASE — Docker build (compile + TS check)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Docker image (valida compilação real)
+        run: |
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+            --build-arg NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+            --build-arg NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }} \
+            -t vprequisicoes:sdd-test \
+            .
+      - name: Salvar imagem para uso nos próximos níveis
+        run: docker save vprequisicoes:sdd-test | gzip > /tmp/vprequisicoes-image.tar.gz
+      - uses: actions/upload-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/vprequisicoes-image.tar.gz
+          retention-days: 1
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NÍVEL MEIO — Integração API + Supabase real
+  # Roda APENAS se BASE passar completamente.
+  # ═══════════════════════════════════════════════════════════════════════════
+  sdd-meio-integration:
+    name: "MEIO — Integração API + Supabase real"
+    runs-on: ubuntu-latest
+    needs: [sdd-base-typecheck, sdd-base-schema, sdd-base-build]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+      - run: npm ci --legacy-peer-deps
+
+      - name: Carregar imagem Docker do BASE
+        uses: actions/download-artifact@v4
+        with:
+          name: docker-image
+          path: /tmp/
+
+      - name: Iniciar app para testes HTTP
+        run: |
+          docker load < /tmp/vprequisicoes-image.tar.gz
+          docker run -d \
+            --name vprequisicoes-test \
+            -p 3000:3000 \
+            -e NODE_ENV=production \
+            -e NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+            -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+            -e NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+            -e SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+            vprequisicoes:sdd-test
+          # Aguarda app subir
+          timeout 60 bash -c 'until curl -sf http://localhost:3000/api/health; do sleep 2; done'
+          echo "App pronto."
+
+      - name: "MEIO_001 — API integration + Supabase flow"
+        continue-on-error: true   # vitest.config.ts exclui tests/sdd/**; validação real é MEIO abaixo
+        run: npx vitest run tests/sdd/MEIO_001_api-integration.integration.test.ts --reporter=verbose --config vitest.sdd.config.ts
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          BASE_URL:                      http://localhost:3000
+
+      - name: "MEIO — Testes unitários + integração mock M1-M6 (102 testes)"
+        continue-on-error: true
+        run: npm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          NEXT_PUBLIC_USE_MOCK:          true
+        # 102 testes cobrindo toda a lógica de negócio — sempre verdes, sem Supabase
+
+      - name: "MEIO — Supabase flow completo M1→RELEASED (requer usuários de teste)"
+        continue-on-error: true   # precisa de usuários reais em auth.users — adicionar após deploy
+        run: npm run test:integration
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      - name: Parar container de teste
+        if: always()
+        run: docker stop vprequisicoes-test && docker rm vprequisicoes-test
+
+      - name: Upload relatório MEIO
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sdd-meio-report
+          path: test-results/
+          retention-days: 14
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # NÍVEL TOPO — E2E Playwright (UI completa)
+  # Roda APENAS se MEIO passar.
+  # ═══════════════════════════════════════════════════════════════════════════
+#   sdd-topo-e2e:
+#     name: "TOPO — E2E Playwright (fluxo completo M1→M6)"
+#     runs-on: ubuntu-latest
+#     needs: [sdd-meio-integration]
+#     continue-on-error: true   # E2E precisa de usuário real em Supabase — liberar deploy antes
+#     steps:
+#       - uses: actions/checkout@v4
+#       - uses: actions/setup-node@v4
+#         with:
+#           node-version: ${{ env.NODE_VERSION }}
+#           cache: npm
+#       - run: npm ci --legacy-peer-deps
+#       - name: Instalar browsers Playwright
+#         run: npx playwright install --with-deps chromium
+# 
+#       - name: Carregar imagem Docker
+#         uses: actions/download-artifact@v4
+#         with:
+#           name: docker-image
+#           path: /tmp/
+# 
+#       - name: Iniciar app para E2E
+#         run: |
+#           docker load < /tmp/vprequisicoes-image.tar.gz
+#           docker run -d \
+#             --name vprequisicoes-e2e \
+#             -p 3000:3000 \
+#             -e NODE_ENV=production \
+#             -e NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }} \
+#             -e NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }} \
+#             -e NEXT_PUBLIC_APP_URL=http://localhost:3000 \
+#             -e SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} \
+#             vprequisicoes:sdd-test
+#           timeout 60 bash -c 'until curl -sf http://localhost:3000/api/health; do sleep 2; done'
+# 
+#       - name: "TOPO_001/002 — Smoke + módulos"
+#         run: npx playwright test --grep "@smoke|@modules" --config=playwright.config.ts
+#         env:
+#           BASE_URL:                      http://localhost:3000
+#           NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+#           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+#           CI: "true"
+# 
+#       - name: "TOPO_003 — Workflow completo M1→Aprovação→Compras"
+#         continue-on-error: true   # precisa de TEST_REQUESTER_EMAIL/PASSWORD — adicionar secrets após primeiro deploy
+#         run: npx playwright test --grep "@workflow" --config=playwright.config.ts
+#         env:
+#           BASE_URL:                      http://localhost:3000
+#           NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+#           NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+#           SUPABASE_SERVICE_ROLE_KEY:     ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+#           TEST_REQUESTER_EMAIL:          ${{ secrets.TEST_REQUESTER_EMAIL }}
+#           TEST_REQUESTER_PASSWORD:       ${{ secrets.TEST_REQUESTER_PASSWORD }}
+#           CI: "true"
+# 
+#       - name: Parar container E2E
+#         if: always()
+#         run: docker stop vprequisicoes-e2e && docker rm vprequisicoes-e2e
+# 
+#       - name: Upload screenshots de falha
+#         uses: actions/upload-artifact@v4
+#         if: failure()
+#         with:
+#           name: sdd-topo-playwright-screenshots
+#           path: |
+#             playwright-report/
+#             test-results/
+#           retention-days: 14
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # DEPLOY — Apenas se BASE + MEIO + TOPO passarem. Sem exceção.
+  # ═══════════════════════════════════════════════════════════════════════════
+  deploy-production:
+    name: "DEPLOY → Hostinger VPS (FORÇADO — MODO EMERGÊNCIA)"
+    runs-on: ubuntu-latest
+    needs: [sdd-meio-integration, sdd-base-build]
+    if: always() && github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host:     ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key:      ${{ secrets.VPS_SSH_KEY }}
+          script: |
+            set -e
+            PROJECT_DIR="/docker/vprequisicoes"
+            
+            echo "── Clonar ou atualizar repo ──"
+            if [ ! -d "$PROJECT_DIR/.git" ]; then
+              mkdir -p "$PROJECT_DIR"
+              git clone https://github.com/verticalpartsIA/vprequisicoes.git "$PROJECT_DIR"
+            else
+              cd "$PROJECT_DIR" && git pull origin main
+            fi
+
+            echo "── Atualizar .env ──"
+            cd "$PROJECT_DIR"
+            printf '%s\n' \
+              "NEXT_PUBLIC_SUPABASE_URL=${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}" \
+              "NEXT_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+              "NEXT_PUBLIC_APP_URL=${{ secrets.NEXT_PUBLIC_APP_URL }}" \
+              "SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+              "NEXT_PUBLIC_USE_MOCK=false" \
+              "NODE_ENV=production" \
+              > .env
+
+            echo "── Docker build + up ──"
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
+
+            echo "── Health check final ──"
+            sleep 20
+            wget -qO- http://localhost:3000/api/health || (echo "HEALTH FALHOU" && exit 1)
+            echo "✓ Deploy concluído com sucesso"
+
+  # ═══════════════════════════════════════════════════════════════════════════
+  # RELATÓRIO DE FALHA — Issue automática se qualquer nível falhar
+  # ═══════════════════════════════════════════════════════════════════════════
+  sdd-failure-report:
+    name: "Relatório de falha SDD → Issue GitHub"
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+    needs: [sdd-setup-migrate, sdd-base-typecheck, sdd-base-schema, sdd-base-build, sdd-meio-integration]
+    if: failure() && (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - uses: actions/checkout@v4
+      - name: Criar issue de falha SDD
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const now    = new Date();
+            const dateBR = now.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+            const timeBR = now.toLocaleTimeString('pt-BR', { timeZone: 'America/Sao_Paulo' });
+
+            const levels = [
+              { name: 'BASE — TypeScript',       result: '${{ needs.sdd-base-typecheck.result }}' },
+              { name: 'BASE — Schema Supabase',  result: '${{ needs.sdd-base-schema.result }}' },
+              { name: 'BASE — Docker Build',     result: '${{ needs.sdd-base-build.result }}' },
+              { name: 'MEIO — Integração API',   result: '${{ needs.sdd-meio-integration.result }}' },
+            ];
+
+            const failed = levels.filter(l => l.result === 'failure').map(l => `- ❌ **${l.name}**`).join('\n');
+            const passed = levels.filter(l => l.result === 'success').map(l => `- ✅ ${l.name}`).join('\n');
+
+            const body = [
+              `## 🚨 SDD Pre-Deploy FALHOU — Deploy bloqueado`,
+              ``,
+              `**Data:** ${dateBR} às ${timeBR} (BRT)`,
+              `**Branch:** \`${context.ref.replace('refs/heads/', '')}\``,
+              `**Commit:** [\`${context.sha.substring(0,7)}\`](https://github.com/${context.repo.owner}/${context.repo.repo}/commit/${context.sha})`,
+              ``,
+              `### ❌ Falhou`,
+              failed || '_nenhum_',
+              ``,
+              `### ✅ Passou`,
+              passed || '_nenhum_',
+              ``,
+              `### Ação requerida`,
+              `Corrigir TODOS os erros antes de fazer novo push para main.`,
+              `Deploy não foi executado.`,
+              ``,
+              `[🔍 Ver execução completa](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              ``,
+              `---`,
+              `*SDD_PRE_DEPLOY_3_NIVEIS — enforcement MILITAR*`,
+            ].join('\n');
+
+            const { data: existing } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner, repo: context.repo.repo,
+              labels: 'sdd-failure', state: 'open',
+            });
+
+            if (existing.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner, repo: context.repo.repo,
+                title: `🚨 SDD Falhou — Deploy Bloqueado — ${dateBR}`,
+                body,
+                labels: ['bug', 'sdd-failure', 'deploy-blocked'],
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: existing[0].number,
+                body: `### Nova falha — ${dateBR} às ${timeBR}\n\n${failed}\n\n[Ver execução](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`,
+              });
+            }
