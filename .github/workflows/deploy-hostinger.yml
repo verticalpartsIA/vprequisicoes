@@ -1,4 +1,4 @@
-name: Deploy to Hostinger High-Fidelity (SFTP)
+name: Deploy to Hostinger High-Fidelity (FTP)
 
 on:
   push:
@@ -39,23 +39,20 @@ jobs:
         cp -r .next/static deploy-dist/.next/
         cp -r public deploy-dist/
         cp server.js deploy-dist/
-        # Remove junk from standalone if any
+        # Remove development junk
         rm -rf deploy-dist/src deploy-dist/tests deploy-dist/skills
 
-    - name: 📂 Sync files via SFTP (Hostinger Professional)
-      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
+    - name: 📂 Sync via FTP (Hostinger Stable)
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        port: 65002
-        local_path: './deploy-dist/'
-        remote_path: '/home/u969661049/domains/darkslategrey-chimpanzee-761383.hostingersite.com/public_html'
-        delete_remote_files: true
-        args: '-o ConnectTimeout=15 -o ServerAliveInterval=30'
-
-    - name: 🧪 Post-Deploy Healthcheck
-      run: |
-        echo "Aguardando 10s para o servidor estabilizar..."
-        sleep 10
-        curl -fSs --max-time 10 https://darkslategrey-chimpanzee-761383.hostingersite.com/api/health || echo "Healthcheck failed, but proceeding..."
+        local-dir: ./deploy-dist/
+        server-dir: ./public_html/
+        exclude: |
+          **/.git*
+          **/.git*/**
+          *.zip
+          *.log
+          .env*

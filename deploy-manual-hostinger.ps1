@@ -2,7 +2,7 @@
 # Criado por Antigravity seguindo a especificação v2.1.0
 
 $hostAddress = "ftp.darkslategrey-chimpanzee-761383.hostingersite.com"
-$username = "u969661049.u969661049" # FTP User
+$username = "u969661049.u969661049"
 $password = "230520@#HOVPn"
 
 Write-Host "--- INICIANDO DEPLOY HIGH-FIDELITY VPRequisições ---" -ForegroundColor Cyan
