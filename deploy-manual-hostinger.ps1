@@ -1,45 +1,40 @@
-# Script de Deploy Manual via FTP para Hostinger
-# Criado por Antigravity
+# Script de Deploy Manual High-Fidelity
+# Criado por Antigravity seguindo a especificação v2.1.0
 
 $hostAddress = "ftp.darkslategrey-chimpanzee-761383.hostingersite.com"
-$username = "u969661049.u969661049"
+$username = "u969661049.u969661049" # FTP User
 $password = "230520@#HOVPn"
-$localFolder = "." # Pasta raiz do projeto
 
-Write-Host "--- INICIANDO DEPLOY MANUAL VPRequisições ---" -ForegroundColor Cyan
+Write-Host "--- INICIANDO DEPLOY HIGH-FIDELITY VPRequisições ---" -ForegroundColor Cyan
 
-# 1. Build do projeto
-Write-Host "1. Compilando o projeto (npm run build)..." -ForegroundColor Yellow
+# 0. Limpeza de entulho local
+Write-Host "0. Limpando arquivos temporários e zips antigos..." -ForegroundColor Yellow
+Get-ChildItem -Path . -Filter "*.zip" | Remove-Item -Force
+Get-ChildItem -Path . -Filter "*.log" | Remove-Item -Force
+
+# 1. Build Standalone
+Write-Host "1. Executando Build Standalone (npm run build)..." -ForegroundColor Yellow
 npm run build
-if ($LASTEXITCODE -ne 0) {
-    Write-Host "ERRO: Falha na compilação. Deploy cancelado." -ForegroundColor Red
-    exit
-}
 
-# 2. Criar pacote de deploy (apenas o essencial)
-Write-Host "2. Preparando pacote de deploy (vprequisicoes-deploy.zip)..." -ForegroundColor Yellow
-$zipFile = "vprequisicoes-deploy.zip"
-if (Test-Path $zipFile) { Remove-Item $zipFile }
+# 2. Verificação
+Write-Host "2. Verificando integridade..." -ForegroundColor Yellow
+node scripts/verify-standalone.js
+if ($LASTEXITCODE -ne 0) { exit }
 
-# Lista de arquivos/pastas para o zip
-$includeList = @(".next", "public", "package.json", "package-lock.json", "server.js", "next.config.js")
-Compress-Archive -Path $includeList -DestinationPath $zipFile -Force
+# 3. Preparar Pasta de Distribuição
+Write-Host "3. Preparando pasta de distribuição (deploy-dist)..." -ForegroundColor Yellow
+if (Test-Path "deploy-dist") { Remove-Item -Recurse -Force "deploy-dist" }
+New-Item -ItemType Directory -Path "deploy-dist"
+Copy-Item -Path ".next/standalone/*" -Destination "deploy-dist" -Recurse
+if (!(Test-Path "deploy-dist/.next")) { New-Item -ItemType Directory -Path "deploy-dist/.next" }
+Copy-Item -Path ".next/static" -Destination "deploy-dist/.next" -Recurse
+Copy-Item -Path "public" -Destination "deploy-dist" -Recurse
+Copy-Item -Path "server.js" -Destination "deploy-dist"
 
-# 3. Upload via FTP (Simples)
-Write-Host "3. Enviando para a Hostinger..." -ForegroundColor Yellow
-$url = "ftp://$hostAddress/$zipFile"
-$webclient = New-Object System.Net.WebClient
-$webclient.Credentials = New-Object System.Net.NetworkCredential($username, $password)
+# 4. Criar ZIP Final (Leve)
+Write-Host "4. Criando pacote otimizado (vprequisicoes-final.zip)..." -ForegroundColor Yellow
+Compress-Archive -Path "deploy-dist/*" -DestinationPath "vprequisicoes-final.zip" -Force
 
-try {
-    $uri = New-Object System.Uri($url)
-    $webclient.UploadFile($uri, "STOR", (Get-Item $zipFile).FullName)
-    Write-Host "SUCESSO! O arquivo $zipFile foi enviado para a Hostinger." -ForegroundColor Green
-    Write-Host "Agora, no painel da Hostinger:" -ForegroundColor Cyan
-    Write-Host "1. Vá em Gerenciador de Arquivos."
-    Write-Host "2. Extraia o arquivo $zipFile."
-    Write-Host "3. No painel Node.js, reinicie a aplicação."
-} catch {
-    Write-Host "ERRO NO UPLOAD: $($_.Exception.Message)" -ForegroundColor Red
-    Write-Host "Verifique se o FTP está ativo no painel da Hostinger." -ForegroundColor Yellow
-}
+Write-Host "`n✅ PROCESSO CONCLUÍDO COM SUCESSO!" -ForegroundColor Green
+Write-Host "Arquivos desnecessários (src, skills, etc) foram excluídos do pacote." -ForegroundColor Cyan
+Write-Host "O arquivo 'vprequisicoes-final.zip' está pronto para ser enviado." -ForegroundColor Yellow

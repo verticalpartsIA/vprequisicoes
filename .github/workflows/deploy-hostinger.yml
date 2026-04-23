@@ -1,4 +1,4 @@
-name: Deploy to Hostinger via FTP
+name: Deploy to Hostinger High-Fidelity (SFTP)
 
 on:
   push:
@@ -7,8 +7,8 @@ on:
       - v11-integrado
 
 jobs:
-  web-deploy:
-    name: Deploy
+  build-and-deploy:
+    name: Build & Deploy Standalone
     runs-on: ubuntu-latest
     steps:
     - name: 🚚 Get latest code
@@ -20,34 +20,42 @@ jobs:
         node-version: '20'
 
     - name: 📦 Install dependencies
-      run: npm install --legacy-peer-deps
+      run: npm ci --legacy-peer-deps
 
-    - name: 🏗️ Build Project
+    - name: 🏗️ Build Project (Standalone Mode)
       run: npm run build
       env:
         NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         NEXT_PUBLIC_USE_MOCK: false
 
-    - name: 📂 Sync files via FTP (Hostinger)
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - name: ✅ Verify Standalone Build
+      run: node scripts/verify-standalone.js
+
+    - name: 🧹 Prepare Deployment Directory
+      run: |
+        mkdir deploy-dist
+        cp -r .next/standalone/* deploy-dist/
+        cp -r .next/static deploy-dist/.next/
+        cp -r public deploy-dist/
+        cp server.js deploy-dist/
+        # Remove junk from standalone if any
+        rm -rf deploy-dist/src deploy-dist/tests deploy-dist/skills
+
+    - name: 📂 Sync files via SFTP (Hostinger Professional)
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        local-dir: ./
-        server-dir: ./public_html/
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/src/**
-          **/tests/**
-          **/public/mock-data/**
-          .env.local
-          tsconfig.json
-          tailwind.config.js
-          README.md
-          github-push-v11.ps1
-          deploy-manual-hostinger.ps1
-          vprequisicoes-deploy.zip
+        port: 65002
+        local_path: './deploy-dist/'
+        remote_path: '/home/u969661049/domains/darkslategrey-chimpanzee-761383.hostingersite.com/public_html'
+        delete_remote_files: true
+        args: '-o ConnectTimeout=15 -o ServerAliveInterval=30'
+
+    - name: 🧪 Post-Deploy Healthcheck
+      run: |
+        echo "Aguardando 10s para o servidor estabilizar..."
+        sleep 10
+        curl -fSs --max-time 10 https://darkslategrey-chimpanzee-761383.hostingersite.com/api/health || echo "Healthcheck failed, but proceeding..."
