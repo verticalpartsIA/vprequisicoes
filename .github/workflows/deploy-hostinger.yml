@@ -29,24 +29,14 @@ jobs:
         NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
         NEXT_PUBLIC_USE_MOCK: false
 
-    - name: 📂 Sync files via FTP
-      uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+    - name: 📂 Sync files via SFTP (Hostinger)
+      uses: wlixcc/SFTP-Deploy-Action@v1.2.4
       with:
         server: ${{ secrets.FTP_SERVER }}
         username: ${{ secrets.FTP_USERNAME }}
         password: ${{ secrets.FTP_PASSWORD }}
-        # Sincroniza os arquivos necessários para o runtime do Node.js na Hostinger
-        local-dir: ./
-        exclude: |
-          **/.git*
-          **/.git*/**
-          **/node_modules/**
-          **/src/**
-          **/tests/**
-          **/public/mock-data/**
-          .env.local
-          tsconfig.json
-          tailwind.config.js
-          README.md
-          github-push-v11.ps1
-        # Nota: Deixamos o .next, server.js, package.json e public
+        port: 65002
+        local_path: './'
+        remote_path: './'
+        delete_remote_files: false
+        args: '-o ConnectTimeout=5'
