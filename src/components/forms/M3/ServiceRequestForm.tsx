@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -21,7 +21,7 @@ import {
 import { toast } from 'sonner';
 
 import { serviceRequestSchema, ServiceRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { MilestoneTable } from '../services/MilestoneTable';
 import { ProviderSelector } from '../services/ProviderSelector';
 import { Button } from '@/components/ui/button';
@@ -58,7 +58,7 @@ export const ServiceRequestForm = () => {
     const toastId = toast.loading('Processando requisição de serviços...');
 
     try {
-      const res: any = await mockApiClient.post('/api/requests/services', data);
+      const res: any = await realPost('/api/requests/services', data);
       toast.success(`Ticket ${res.data.ticket_number} gerado com sucesso!`, { id: toastId });
 
       setTimeout(() => {

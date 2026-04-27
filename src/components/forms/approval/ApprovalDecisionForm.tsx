@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,7 @@ import { CheckCircle2, XCircle, RefreshCcw, Send, AlertTriangle } from 'lucide-r
 import { useRouter } from 'next/navigation';
 
 import { approvalDecisionSchema, ApprovalDecisionInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Toast, ToastType } from '@/components/ui/toast';
 import { canApprove, getApprovalTier } from '@core/validation/approvalTiers';
@@ -23,7 +23,7 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
   const [isLoading, setIsLoading] = useState(false);
   const [toast, setToast] = useState<{ type: ToastType; message: string } | null>(null);
 
-  const amount = Number(ticket.quotation?.total_amount || 0);
+  const amount = ticket._totalAmount || 0;
   const tier = getApprovalTier(amount);
   const allowed = canApprove(userRole, amount);
 
@@ -44,7 +44,7 @@ export const ApprovalDecisionForm = ({ ticket, userRole }: ApprovalDecisionFormP
 
     setIsLoading(true);
     try {
-      await mockApiClient.post(`/api/approval/tickets/${ticket.id}/decide`, data);
+      await realPost(`/api/approval/tickets/${ticket.id}/decide`, data);
 
       const messages = {
          approve: 'Requisição aprovada com sucesso!',

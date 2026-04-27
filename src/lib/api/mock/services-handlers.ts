@@ -10,7 +10,7 @@ export const servicesHandlers = {
     return {
       success: true,
       data: {
-        ticket_number: `M3-${Math.floor(100000 + Math.random() * 900000)}`,
+        ticket_number: `SRV-2026-${Math.floor(100 + Math.random() * 899)}`,
         status: "pending",
         message: "Requisição enviada para cotação com sucesso",
         createdAt: new Date().toISOString()

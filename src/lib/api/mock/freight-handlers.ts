@@ -4,7 +4,7 @@ import { FreightRequest } from '../../../../packages/modules/M5-freight/types';
 
 export const mockFreightRequestHandler = (data: FreightRequestInput) => {
   const newIdNum = Math.floor(100000 + Math.random() * 900000);
-  const newId = `M5-${newIdNum}`;
+  const newId = `FRT-2026-${Math.floor(100 + Math.random() * 899)}`;
   
   const newTicket = {
     id: newIdNum,

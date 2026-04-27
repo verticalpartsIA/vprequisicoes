@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,7 @@ import { Send, FileCheck, Gavel, AlertTriangle, Printer, Download } from 'lucide
 import { useRouter } from 'next/navigation';
 
 import { purchaseOrderSchema, PurchaseOrderInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Toast, ToastType } from '@/components/ui/toast';
 import { PurchaseMethodSelector } from './PurchaseMethodSelector';
@@ -89,9 +89,9 @@ export const PurchaseOrderForm = ({ ticket }: PurchaseOrderFormProps) => {
     setIsLoading(true);
     try {
       const endpoint = data.method === 'auction' ? `/api/purchasing/tickets/${ticket.id}/auction` : `/api/purchasing/tickets/${ticket.id}/direct`;
-      const res: any = await mockApiClient.post(endpoint, { ...data, oc_number: ocNumber });
+      const res: any = await realPost(endpoint, { ...data, oc_number: ocNumber });
 
-      setToast({ type: 'success', message: `Pedido de Compra ${res.data.oc_number} emitido com sucesso!` });
+      setToast({ type: 'success', message: `Pedido de Compra ${res.data?.oc_number || ocNumber} emitido com sucesso!` });
       setTimeout(() => router.push('/purchasing'), 2000);
 
     } catch (error: any) {

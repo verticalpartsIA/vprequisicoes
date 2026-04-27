@@ -3,7 +3,7 @@ import { mockTicketList } from '@core/db/mock-db';
 
 export const mockRentalRequestHandler = (data: RentalRequestInput) => {
   const newIdNum = Math.floor(100000 + Math.random() * 900000);
-  const newId = `M6-${newIdNum}`;
+  const newId = `RNT-2026-${Math.floor(100 + Math.random() * 899)}`;
 
   const rentalDays = data.start_date && data.end_date
     ? Math.ceil((new Date(data.end_date).getTime() - new Date(data.start_date).getTime()) / (1000 * 60 * 60 * 24))

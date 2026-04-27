@@ -8,7 +8,7 @@ import { PackageSearch, MapPin, Calendar, User, Building2, Send, Save, Loader2, 
 import { toast } from 'sonner';
 
 import { rentalRequestSchema, RentalRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -52,7 +52,7 @@ export const RentalRequestForm = () => {
     setIsSubmitting(true);
     const toastId = toast.loading('Processando requisição de locação...');
     try {
-      const response: any = await mockApiClient.post('/api/requests/rental', data);
+      const response: any = await realPost('/api/requests/rental', data);
       toast.success(`Ticket ${response.data.ticket_number} gerado com sucesso!`, { id: toastId });
       setTimeout(() => router.push('/'), 1500);
     } catch (error: any) {

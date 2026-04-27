@@ -27,9 +27,8 @@
 
 /* ─────────────────────────────────────────────────────────────────────
    IMPRESSÃO / EXPORTAÇÃO PDF
-   Regra: ao imprimir uma página com `.vp-print-area`, esconder tudo
-   fora dessa área. Resultado: a ordem de compra sai sozinha em
-   uma página A4, sem sidebar, header, botões ou paddings externos.
+   Quando há .vp-print-area na página, esconder TUDO fora dela e
+   imprimir apenas a área marcada em uma página A4.
    ───────────────────────────────────────────────────────────────────── */
 @media print {
   @page {
@@ -44,7 +43,6 @@
     print-color-adjust: exact;
   }
 
-  /* Esconde tudo que está fora da área imprimível, quando ela existir */
   body:has(.vp-print-area) *:not(.vp-print-area):not(.vp-print-area *) {
     visibility: hidden !important;
   }
@@ -63,13 +61,11 @@
     visibility: visible !important;
   }
 
-  /* Itens explicitamente marcados para não imprimir */
   .vp-print-hidden,
   .vp-print-hidden * {
     display: none !important;
   }
 
-  /* Evita quebras feias dentro do conteúdo principal */
   .vp-print-area,
   .vp-print-area table,
   .vp-print-area thead,

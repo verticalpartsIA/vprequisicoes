@@ -12,9 +12,10 @@ interface PurchaseOrderPreviewProps {
 export const PurchaseOrderPreview = ({ order }: PurchaseOrderPreviewProps) => {
   if (!order) return null;
 
-  // Aciona impressão. CSS @media print em src/styles/global.css limita o output
-  // ao .vp-print-area para que apenas o card da OC vá ao papel/PDF e tudo caiba
-  // em uma única página A4. Usar este botão para "Imprimir" ou "Salvar como PDF".
+  // Aciona impressão do navegador. CSS @media print em src/styles/global.css
+  // limita o output ao .vp-print-area para que apenas o card da OC vá ao papel
+  // e tudo caiba em uma única página A4. Tanto "Imprimir" quanto "PDF" usam
+  // o mesmo gatilho — o usuário escolhe destino "Salvar como PDF" no diálogo.
   const acionarImpressao = () => {
     if (typeof window !== 'undefined') window.print();
   };

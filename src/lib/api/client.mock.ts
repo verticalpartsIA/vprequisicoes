@@ -13,7 +13,7 @@ import { mockRentalRequestHandler, mockRentalListHandler } from './mock/rental-h
 
 // USE_MOCK = false → dados reais no Supabase via rotas Next.js
 // USE_MOCK = true  → dados em memória (desenvolvimento offline)
-const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK !== 'false';
+const USE_MOCK = process.env.NEXT_PUBLIC_USE_MOCK === 'true';
 
 import { mockTicketList } from '@core/db/mock-db';
 import { realGet, realPost, realPatch } from './real-client';

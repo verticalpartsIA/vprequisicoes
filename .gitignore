@@ -23,11 +23,3 @@ yarn-error.log*
 playwright-report/
 test-results/
 playwright.env.json
-
-# Deploys históricos / pastas de saída (não vão pro build do Next)
-nodejs/
-public_html/
-vpreq_SOURCE_CODE/
-deploy-dist/
-arm_deploy/
-*.zip

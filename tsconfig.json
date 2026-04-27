@@ -54,11 +54,6 @@
   ],
   "exclude": [
     "node_modules",
-    "nodejs",
-    "public_html",
-    "vpreq_SOURCE_CODE",
-    "deploy-dist",
-    "arm_deploy",
     "**/*.test.ts",
     "**/*.test.tsx",
     "**/*.spec.ts",

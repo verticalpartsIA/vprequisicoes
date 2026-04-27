@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation';
 import { ShoppingBag, CheckCircle2, AlertTriangle, User, FileText, Send } from 'lucide-react';
 
 import { receivingSchema, ReceivingInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { supabase } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Toast, ToastType } from '@/components/ui/toast';
 import { Input } from '@/components/ui/input';
@@ -50,14 +50,48 @@ export const ReceivingForm = ({ ticket }: ReceivingFormProps) => {
   const onSubmit = async (data: ReceivingInput) => {
     setIsLoading(true);
     try {
-      const endpoint = `/api/receiving/tickets/${ticket.id}/${data.type}`;
-      const res: any = await mockApiClient.post(endpoint, data);
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error('Sessão expirada. Faça login novamente.');
 
-      setToast({
-        type: 'success',
-        message: `Recebimento finalizado com sucesso! Status: ${res.data.status}`
+      const nextStatus = ticket.module === 'M6_LOCACAO' ? 'IN_USE' : 'RELEASED';
+      const notes = `Recebimento ${data.type === 'digital' ? 'digital' : 'físico'} confirmado. ${(data as any).notes ?? ''}`.trim();
+
+      // Try RPC transition first
+      const { error: transError } = await supabase.rpc('req_transition_ticket', {
+        p_ticket_id:  ticket.id,
+        p_new_status: nextStatus,
+        p_user_id:    user.id,
+        p_notes:      notes,
       });
 
+      if (transError) {
+        // Fallback: direct update
+        const { error: updateError } = await supabase
+          .from('req_tickets')
+          .update({
+            status: nextStatus,
+            received_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+          .eq('id', ticket.id);
+        if (updateError) throw new Error(`Erro ao atualizar ticket: ${updateError.message}`);
+      } else {
+        await supabase.from('req_tickets').update({ received_at: new Date().toISOString() }).eq('id', ticket.id);
+      }
+
+      // Audit log
+      await supabase.from('req_audit_logs').insert({
+        ticket_id: ticket.id,
+        user_id:   user.id,
+        action:    data.type === 'digital' ? 'Atesto digital confirmado' : 'Recebimento físico confirmado',
+        details:   (data as any).notes ?? '',
+        level:     'success',
+        module:    'receiving',
+        metadata:  { type: data.type, next_status: nextStatus },
+      });
+
+      setToast({ type: 'success', message: `Recebimento finalizado com sucesso! Status: ${nextStatus}` });
       setTimeout(() => router.push('/receiving'), 2000);
     } catch (error: any) {
       setToast({ type: 'error', message: error.message || 'Erro ao processar recebimento.' });

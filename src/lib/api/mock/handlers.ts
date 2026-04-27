@@ -16,7 +16,7 @@ export const mockProductRequestHandler = async (data: any) => {
     data: {
       id: timestamp,
       request_id: `REQ-${timestamp}`,
-      ticket_number: `M1-${randomTicket}`,
+      ticket_number: `PRD-2026-${Math.floor(100 + Math.random() * 899)}`,
       status: "SUBMITTED",
       module: "M1",
       requester_name: data.solicitante,

@@ -2,7 +2,8 @@ import { TravelRequestInput } from '@/lib/validation/schemas';
 import { mockTicketList } from '@core/db/mock-db';
 
 export const mockTravelRequestHandler = (data: TravelRequestInput) => {
-  const newId = `M2-${Math.floor(100000 + Math.random() * 900000)}`;
+  const newIdNum = Math.floor(100 + Math.random() * 899);
+  const newId = `TRV-2026-${newIdNum}`;
   
   const newTicket = {
     id: newId,

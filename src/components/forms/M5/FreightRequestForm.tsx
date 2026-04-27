@@ -7,7 +7,7 @@ import { Truck, Send, ClipboardList, MapPin, Package, Calendar, Save, Loader2, I
 import { useRouter } from 'next/navigation';
 
 import { freightRequestSchema, FreightRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
@@ -57,7 +57,7 @@ export const FreightRequestForm = () => {
     const toastId = toast.loading('Processando requisição de frete...');
 
     try {
-      const response: any = await mockApiClient.post('/api/requests/freight', data);
+      const response: any = await realPost('/api/requests/freight', data);
       toast.success(`Ticket ${response.data.ticket_number} gerado com sucesso!`, { id: toastId });
 
       setTimeout(() => {

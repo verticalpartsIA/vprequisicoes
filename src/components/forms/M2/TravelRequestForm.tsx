@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { travelRequestSchema, TravelRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { TransportSelector } from '../travel/TransportSelector';
 import { UrgencyJustificationCard } from '../travel/UrgencyJustificationCard';
 import { Button } from '@/components/ui/button';
@@ -77,7 +77,7 @@ export const TravelRequestForm = () => {
     setIsSubmitting(true);
     const toastId = toast.loading('Processando requisição...');
 
-    mockApiClient.post('/api/requests/travel', data)
+    realPost('/api/requests/travel', data)
       .then((res: any) => {
         toast.success(`Ticket ${res.data.ticket_number} gerado com sucesso!`, { id: toastId });
 

@@ -23,6 +23,10 @@ export function normalizeTicket(t: any) {
     t.details?.justificativa ??
     'Não informada';
 
+  // Valor Total e Cotação
+  const quotation = t.metadata?.quotation || t.quotation || null;
+  const totalAmount = Number(quotation?.total_amount || t.metadata?.total_amount || t.total_amount || 0);
+
   return {
     ...t,
     _moduleShort: moduleShort,
@@ -32,5 +36,7 @@ export function normalizeTicket(t: any) {
     _itens: itens,
     _departamento: departamento,
     _justificativa: justificativa,
+    _totalAmount: totalAmount,
+    _quotation: quotation,
   };
 }

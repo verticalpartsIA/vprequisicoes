@@ -5,7 +5,7 @@ import { MaintenanceRequestInput } from '../../validation/schemas';
  */
 export const maintenanceHandlers = {
   create: async (data: MaintenanceRequestInput) => {
-    const ticketNumber = `M4-${Math.floor(100000 + Math.random() * 900000)}`;
+    const ticketNumber = `MNT-2026-${Math.floor(100 + Math.random() * 899)}`;
     
     // Lógica de Bypass de Contrato
     const status = data.covered_by_contract ? 'APPROVED' : 'SUBMITTED';

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState, useMemo } from 'react';
 import { useForm, useFieldArray, FormProvider } from 'react-hook-form';
@@ -7,7 +7,7 @@ import { Send, Save, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { quotationSchema, QuotationInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Toast, ToastType } from '@/components/ui/toast';
 import { ItemQuotationCard } from './ItemQuotationCard';
@@ -63,16 +63,44 @@ export const QuotationForm = ({ ticket }: QuotationFormProps) => {
   const onSubmit = async (data: QuotationInput) => {
     setIsLoading(true);
     try {
-      await mockApiClient.post(`/api/quotation/tickets/${ticket.id}`, {
-        ...data,
-        total_amount: total,
-        status: 'submitted'
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Usuário não autenticado');
+
+      // 1. Atualizar o Ticket com os dados da cotação e iniciar Aprovação Nível 1
+      const { error: updateError } = await supabase
+        .from('req_tickets')
+        .update({
+          status: 'PENDING_APPROVAL', // Transição conforme SDD
+          metadata: {
+            ...ticket.metadata,
+            current_approval_level: 1, // Inicializa contador de aprovação
+            quotation: {
+              ...data,
+              total_amount: total,
+              completed_at: new Date().toISOString(),
+              buyer_id: user.id
+            }
+          }
+        })
+        .eq('id', ticket.id);
+
+      if (updateError) throw updateError;
+
+      // 2. Auditoria
+      await supabase.rpc('req_log_audit', {
+        p_ticket_id: ticket.id,
+        p_user_id: user.id,
+        p_action: 'Cotação Concluída',
+        p_details: `Valor Total: R$ ${total.toLocaleString('pt-BR')}. Iniciada Aprovação Nível 1.`,
+        p_level: 'success',
+        p_module: ticket.module
       });
       
-      setToast({ type: 'success', message: 'Cotação enviada para aprovação com sucesso!' });
+      setToast({ type: 'success', message: 'Cotação enviada para o Nível 1 de Aprovação!' });
       setTimeout(() => router.push('/quotation'), 2000);
       
     } catch (error: any) {
+      console.error('[QuotationForm] Erro:', error);
       setToast({ type: 'error', message: error.message || 'Erro ao enviar cotação.' });
     } finally {
       setIsLoading(false);
@@ -82,7 +110,7 @@ export const QuotationForm = ({ ticket }: QuotationFormProps) => {
   const handleSaveDraft = async () => {
     const data = methods.getValues();
     try {
-      await mockApiClient.patch(`/api/quotation/tickets/${ticket.id}/draft`, data);
+      await realPost(`/api/quotation/tickets/${ticket.id}/draft`, data);
       setToast({ type: 'success', message: 'Rascunho salvo localmente.' });
     } catch (err) {
       setToast({ type: 'error', message: 'Erro ao salvar rascunho.' });

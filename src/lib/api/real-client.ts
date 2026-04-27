@@ -1,231 +1,456 @@
 /**
- * real-client.ts
- * Cliente HTTP real que chama as rotas Next.js /api/...
- * Tem a MESMA interface que mockApiClient (get/post/patch)
- * para que client.mock.ts possa delegar sem que os 19 componentes
- * consumidores precisem ser alterados.
+ * real-client.ts (VERSÃO ESTRUTURAL PARA HOSPEDAGEM COMPARTILHADA)
+ * 
+ * Esta versão remove a dependência de rotas /api do Next.js e fala diretamente
+ * com o Supabase via navegador. Ideal para sites estáticos (output: export).
  */
 
-async function apiFetch(
-  method: 'GET' | 'POST' | 'PATCH' | 'PUT',
-  path: string,
-  body?: unknown
-): Promise<any> {
-  const base =
-    typeof window !== 'undefined'
-      ? '' // client-side: relative URL
-      : (process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000');
+import { supabase } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/types';
 
-  const res = await fetch(`${base}${path}`, {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-    body: body !== undefined ? JSON.stringify(body) : undefined,
-    credentials: 'include', // envia cookies de sessão Supabase
-  });
+type ModuleType   = Database['public']['Enums']['req_module_type'];
+type StatusType   = Database['public']['Enums']['req_ticket_status'];
+type PriorityType = Database['public']['Enums']['req_priority_level'];
 
-  if (!res.ok) {
-    const errData = await res.json().catch(() => ({}));
-    throw new Error(errData.error ?? `HTTP ${res.status}`);
+// ─── HELPERS DE LÓGICA (Trazidos das Rotas de API) ───────────────────────────
+
+function generateTitle(module: ModuleType, meta: any): string {
+  switch (module) {
+    case 'M1_PRODUTOS':
+      return `Requisição de Produtos — ${meta.itens?.[0]?.nome ?? 'Múltiplos itens'}`;
+    case 'M2_VIAGENS':
+      return `Viagem ${meta.origin ?? ''} → ${meta.destination ?? ''}`;
+    case 'M3_SERVICOS':
+      return `Serviço — ${meta.service_type ?? ''} em ${meta.location ?? ''}`;
+    case 'M4_MANUTENCAO':
+      return `Manutenção ${meta.maintenance_type ?? ''} — ${meta.asset_name ?? ''}`;
+    case 'M5_FRETE':
+      return `Frete ${meta.direction === 'inbound' ? 'Entrada' : 'Saída'} — ${meta.cargo_type ?? ''}`;
+    case 'M6_LOCACAO':
+      return `Locação — ${meta.equipment_name ?? ''}`;
+    default:
+      return `Requisição — ${module}`;
   }
-
-  return res.json();
 }
 
-// ─── helpers de mapeamento de path ────────────────────────────────────────────
+function resolvePriority(module: ModuleType, meta: any): PriorityType {
+  if (module === 'M4_MANUTENCAO' && meta.maintenance_type === 'corrective' && meta.priority === 'emergency') {
+    return 'urgent';
+  }
+  if (module === 'M2_VIAGENS' && meta.urgency_justification) {
+    return 'high';
+  }
+  const p = meta.priority;
+  if (p === 'urgent' || p === 'high' || p === 'low') return p as PriorityType;
+  return 'normal';
+}
 
-/** extrai segmento de índice N de um path como /api/a/b/c/d */
-function seg(path: string, n: number): string {
-  return path.split('/').filter(Boolean)[n] ?? '';
+async function findOrCreateDepartment(name: string, costCenter: string): Promise<string> {
+  const cleanName = (name || 'Sem departamento').trim();
+  const cleanCC = (costCenter || 'N/A').trim();
+
+  // Tenta encontrar
+  const { data: existing } = await supabase
+    .from('req_departments')
+    .select('id')
+    .ilike('name', cleanName)
+    .maybeSingle();
+
+  if (existing?.id) return existing.id;
+
+  // Cria se não existir
+  const { data: created, error } = await supabase
+    .from('req_departments')
+    .insert({ name: cleanName, cost_center: cleanCC })
+    .select('id')
+    .single();
+
+  if (error) throw new Error(`Erro ao criar departamento: ${error.message}`);
+  return created.id;
 }
 
 // ─── GET ──────────────────────────────────────────────────────────────────────
 
 export async function realGet(path: string, params?: Record<string, string>): Promise<any> {
-  // ── /api/requests  → GET /api/tickets ────────────────────────────────────
-  if (path === '/api/requests') {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    const data = await apiFetch('GET', `/api/tickets${qs}`);
-    // Normalisa: retorna { status:'success', data: [...] }
-    return { status: 'success', data: data.tickets ?? [] };
-  }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
 
-  // ── /api/requests/rental → GET /api/tickets?module=M6_LOCACAO ────────────
-  if (path === '/api/requests/rental') {
-    const data = await apiFetch('GET', '/api/tickets?module=M6_LOCACAO');
-    return { status: 'success', data: data.tickets ?? [] };
-  }
-
-  // ── /api/approval/tickets → GET /api/tickets?status=PENDING_APPROVAL ─────
-  if (path === '/api/approval/tickets') {
-    const data = await apiFetch('GET', '/api/tickets?status=PENDING_APPROVAL');
-    return { status: 'success', data: data.tickets ?? [] };
-  }
-
-  // ── /api/purchasing/tickets → GET /api/tickets?status=APPROVED ───────────
-  if (path === '/api/purchasing/tickets') {
-    const status = params?.status ?? 'APPROVED';
-    const data = await apiFetch('GET', `/api/tickets?status=${status}`);
-    return { status: 'success', data: data.tickets ?? [] };
-  }
-
-  // ── /api/receiving/tickets → GET /api/tickets?status=RECEIVING ───────────
-  if (path === '/api/receiving/tickets') {
-    const status = params?.status ?? 'RECEIVING';
-    const data = await apiFetch('GET', `/api/tickets?status=${status}`);
-    return { status: 'success', data: data.tickets ?? [] };
-  }
-
-  // ── /api/dashboard/summary → GET /api/dashboard ──────────────────────────
+  // 1. Dashbord Summary
   if (path === '/api/dashboard/summary') {
-    const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-    return apiFetch('GET', `/api/dashboard${qs}`);
+    const { data, error } = await supabase.rpc('req_get_dashboard_summary' as any);
+    if (error) throw error;
+    return data;
   }
 
-  // ── /api/approval/tickets/{id}/audit → GET /api/tickets/{id} (audit_logs) ─
-  const auditMatch = path.match(/^\/api\/approval\/tickets\/([^/]+)\/audit$/);
-  if (auditMatch) {
-    const data = await apiFetch('GET', `/api/tickets/${auditMatch[1]}`);
-    return { status: 'success', data: data.audit_logs ?? [] };
+  // 2. Listagem de Tickets (View)
+  const isSpecialList = path === '/api/approval/tickets' || path === '/api/purchasing/tickets' || path === '/api/receiving/tickets';
+  let query = supabase
+    .from(isSpecialList ? 'req_tickets' : 'req_tickets_view')
+    .select('*')
+    .order('created_at', { ascending: false });
+
+  // Regras de Filtro
+  if (path === '/api/requests') {
+    // Para a lista geral, mostramos o que é do usuário OU o que está aguardando cotação (para compradores)
+    query = query.or(`requester_email.eq.${user.email},status.in.(SUBMITTED,QUOTING)`);
+  } else if (path === '/api/requests/rental') {
+    query = query.eq('module', 'M6_LOCACAO').eq('requester_email', user.email!);
+  } else if (path === '/api/approval/tickets') {
+    query = query.eq('status', 'PENDING_APPROVAL');
+  } else if (path === '/api/purchasing/tickets') {
+    query = query.eq('status', (params?.status ?? 'APPROVED') as StatusType);
+  } else if (path === '/api/receiving/tickets') {
+    query = query.eq('status', (params?.status ?? 'RECEIVING') as StatusType);
   }
 
-  // ── /api/approval/tickets/{id} → GET /api/approval/{id} ──────────────────
-  const approvalMatch = path.match(/^\/api\/approval\/tickets\/([^/]+)$/);
-  if (approvalMatch) {
-    const data = await apiFetch('GET', `/api/approval/${approvalMatch[1]}`);
-    return { status: 'success', data };
+  // Filtros de busca dinâmica
+  if (params?.status && 
+      path !== '/api/approval/tickets' && 
+      path !== '/api/purchasing/tickets' && 
+      path !== '/api/receiving/tickets') {
+    query = query.eq('status', params.status as StatusType);
   }
 
-  // ── /api/requests/{id} → GET /api/tickets/{id} ───────────────────────────
+  // Detalhe de Ticket Único
   const requestMatch = path.match(/^\/api\/requests\/([^/]+)$/);
   if (requestMatch) {
-    const data = await apiFetch('GET', `/api/tickets/${requestMatch[1]}`);
-    return { status: 'success', data: data.ticket ?? data };
-  }
-
-  // ── /api/quotation/tickets/{id} → GET /api/quotation/{id} ────────────────
-  const quotationGetMatch = path.match(/^\/api\/quotation\/tickets\/([^/]+)$/);
-  if (quotationGetMatch) {
-    const data = await apiFetch('GET', `/api/quotation/${quotationGetMatch[1]}`);
+    const { data, error } = await supabase
+      .from('req_tickets_view')
+      .select('*')
+      .eq('id', requestMatch[1])
+      .single();
+    if (error) throw error;
     return { status: 'success', data };
   }
 
-  throw new Error(`Endpoint GET não mapeado para real: ${path}`);
+  // Audit Logs
+  const auditMatch = path.match(/^\/api\/approval\/tickets\/([^/]+)\/audit$/);
+  if (auditMatch) {
+    const { data, error } = await supabase
+      .from('req_audit_logs')
+      .select('*')
+      .eq('ticket_id', auditMatch[1])
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return { status: 'success', data };
+  }
+
+  const { data, error } = await query.limit(100);
+  if (error) throw error;
+  return { status: 'success', data: data ?? [] };
 }
 
 // ─── POST ─────────────────────────────────────────────────────────────────────
 
 export async function realPost(path: string, body: any): Promise<any> {
-  // ── /api/requests/products → POST /api/tickets (M1) ─────────────────────
-  if (path.includes('/api/requests/products')) {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M1_PRODUTOS', ...body });
-    return {
-      status: 'success',
-      data: {
-        request_id: data.id,
-        ticket_number: data.ticket_number,
-        status: data.status ?? 'SUBMITTED',
-        next_step: 'quotation',
-        submitted_at: new Date().toISOString(),
-      },
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Usuário não autenticado');
+
+  // 1. Criação de Ticket (M1-M6)
+  if (path.startsWith('/api/requests/')) {
+    const moduleMap: Record<string, ModuleType> = {
+      'products': 'M1_PRODUTOS',
+      'travel': 'M2_VIAGENS',
+      'services': 'M3_SERVICOS',
+      'maintenance': 'M4_MANUTENCAO',
+      'freight': 'M5_FRETE',
+      'rental': 'M6_LOCACAO'
     };
+    
+    const segment = path.split('/').pop() || 'products';
+    const module = moduleMap[segment] || 'M1_PRODUTOS';
+
+    // Resolver Depto
+    const deptId = await findOrCreateDepartment(body.departamento, body.centroCusto);
+
+    // Gerar Número (RPC)
+    const { data: ticketNumber } = await supabase.rpc('req_generate_ticket_number', { p_module: module });
+
+    // Inserir Ticket
+    const { data: ticket, error: ticketErr } = await supabase
+      .from('req_tickets')
+      .insert({
+        module,
+        title: generateTitle(module, body),
+        requester_id: user.id,
+        department_id: deptId,
+        ticket_number: ticketNumber as string,
+        status: 'SUBMITTED',
+        currency: 'BRL',
+        metadata: body,
+        priority: resolvePriority(module, body),
+        description: body.justificativa || null
+      })
+      .select()
+      .single();
+
+    if (ticketErr) throw ticketErr;
+
+    // Se M1, insere itens
+    if (module === 'M1_PRODUTOS' && body.itens?.length > 0) {
+      await supabase.from('req_ticket_items').insert(
+        body.itens.map((item: any, i: number) => ({
+          ticket_id: ticket.id,
+          description: item.nome || item.description,
+          quantity: Number(item.quantidade || 1),
+          unit: item.unit || 'un',
+          sort_order: i
+        }))
+      );
+    }
+
+    // Auditoria
+    await supabase.rpc('req_log_audit', {
+      p_ticket_id: ticket.id,
+      p_user_id: user.id,
+      p_action: 'Requisição criada',
+      p_details: `Ticket ${ticketNumber} criado via client estático`,
+      p_level: 'success',
+      p_module: module
+    });
+
+    return { status: 'success', data: ticket };
   }
 
-  // ── /api/requests/travel → POST /api/tickets (M2) ────────────────────────
-  if (path === '/api/requests/travel') {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M2_VIAGENS', ...body });
-    return { status: 'success', data };
-  }
+    // 2. Fluxo de Cotação (V2)
+    const draftMatch = path.match(/^\/api\/quotation\/tickets\/([^/]+)\/draft$/);
+    if (draftMatch) {
+      const ticketId = draftMatch[1];
+      const { data: updatedTicket, error: updateError } = await supabase
+        .from('req_tickets')
+        .update({
+          metadata: {
+            ...((await supabase.from('req_tickets').select('metadata').eq('id', ticketId).single()).data?.metadata || {}),
+            draft: body
+          }
+        })
+        .eq('id', ticketId)
+        .select()
+        .single();
 
-  // ── /api/requests/services → POST /api/tickets (M3) ─────────────────────
-  if (path === '/api/requests/services') {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M3_SERVICOS', ...body });
-    return { status: 'success', data };
-  }
+      if (updateError) throw updateError;
+      return { status: 'success', data: updatedTicket };
+    }
 
-  // ── /api/requests/maintenance → POST /api/tickets (M4) ──────────────────
-  if (path === '/api/requests/maintenance') {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M4_MANUTENCAO', ...body });
-    return { status: 'success', data };
-  }
+    const quotationMatch = path.match(/^\/api\/quotation\/tickets\/([^/]+)$/);
+    if (quotationMatch) {
+      const ticketId = quotationMatch[1];
+      let finalSupplierId = body.supplier_id;
 
-  // ── /api/requests/freight → POST /api/tickets (M5) ───────────────────────
-  if (path === '/api/requests/freight') {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M5_FRETE', ...body });
-    return { status: 'success', data };
-  }
+      // Blindagem: Se o supplier_id não for um UUID válido, tratamos como nome
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      
+      if (!uuidRegex.test(finalSupplierId)) {
+        const supplierName = finalSupplierId || 'Fornecedor Avulso';
+        
+        // Tentar buscar por nome
+        const { data: existingSupplier } = await supabase
+          .from('req_suppliers')
+          .select('id')
+          .ilike('name', supplierName)
+          .maybeSingle();
 
-  // ── /api/requests/rental → POST /api/tickets (M6) ────────────────────────
-  if (path === '/api/requests/rental') {
-    const data = await apiFetch('POST', '/api/tickets', { module: 'M6_LOCACAO', ...body });
-    return { status: 'success', data };
-  }
+        if (existingSupplier) {
+          finalSupplierId = existingSupplier.id;
+        } else {
+          // Criar novo fornecedor
+          const { data: newSupplier, error: createErr } = await supabase
+            .from('req_suppliers')
+            .insert({ name: supplierName, is_active: true })
+            .select('id')
+            .single();
+          
+          if (!createErr && newSupplier) {
+            finalSupplierId = newSupplier.id;
+          } else {
+            // Fallback final
+            const { data: firstSup } = await supabase.from('req_suppliers').select('id').limit(1).maybeSingle();
+            finalSupplierId = firstSup?.id;
+          }
+        }
+      }
+      
+      // Inserir Cotação
+      const { data: quotation, error: quotErr } = await supabase
+        .from('req_quotations')
+        .insert({
+          ticket_id: ticketId,
+          supplier_id: finalSupplierId,
+          total_value: body.total_amount,
+          delivery_days: body.delivery_days || 0,
+          notes: body.notes,
+          status: 'RECEIVED',
+          items: body.items || []
+        })
+        .select()
+        .single();
 
-  // ── /api/approval/tickets/{id}/decide → POST /api/approval/{id} ──────────
+      if (quotErr) throw quotErr;
+
+      // Buscar Ticket Atual para preservar metadados originais
+      const { data: existingTicket } = await supabase
+        .from('req_tickets')
+        .select('metadata')
+        .eq('id', ticketId)
+        .single();
+
+      // Atualizar Ticket preservando dados originais (IMPORTANTE para M2-M6)
+      await supabase
+        .from('req_tickets')
+        .update({ 
+          status: 'PENDING_APPROVAL',
+          quoted_at: new Date().toISOString(),
+          metadata: { 
+            ...(existingTicket?.metadata || {}), 
+            quotation: {
+              ...body,
+              quotation_id: quotation.id
+            }
+          }
+        })
+        .eq('id', ticketId);
+
+      // Auditoria
+      await supabase.rpc('req_log_audit', {
+        p_ticket_id: ticketId,
+        p_user_id: user.id,
+        p_action: 'Cotação enviada',
+        p_details: `Cotação registrada. Total: R$ ${body.total_amount}. Iniciada Aprovação.`,
+        p_level: 'success',
+        p_module: 'V2_COTACAO'
+      });
+
+      return { status: 'success', data: quotation };
+    }
+
+  // 3. Decisão de Aprovação (V3)
   const approvalDecideMatch = path.match(/^\/api\/approval\/tickets\/([^/]+)\/decide$/);
   if (approvalDecideMatch) {
-    const data = await apiFetch('POST', `/api/approval/${approvalDecideMatch[1]}`, body);
-    return { status: 'success', data };
-  }
+    const ticketId = approvalDecideMatch[1];
+    const rawDecision = body.decision?.toLowerCase();
+    
+    const { data: ticket } = await supabase.from('req_tickets').select('*').eq('id', ticketId).single();
+    if (!ticket) throw new Error('Ticket não encontrado');
 
-  // ── /api/purchasing/tickets/{id}/auction → POST /api/purchasing/{id} ─────
-  const auctionMatch = path.match(/^\/api\/purchasing\/tickets\/([^/]+)\/auction$/);
-  if (auctionMatch) {
-    const data = await apiFetch('POST', `/api/purchasing/${auctionMatch[1]}`, {
-      method: 'auction',
-      supplier_list: body.supplier_list,
+    const totalValue = Number(ticket.metadata?.quotation?.total_amount || ticket.metadata?.total_amount || 0);
+    
+    let nextStatus: StatusType = 'APPROVED';
+    let actionLabel = 'Aprovação Concedida';
+
+    if (rawDecision === 'reject' || rawDecision === 'rejected') {
+      nextStatus = 'REJECTED';
+      actionLabel = 'Requisição Rejeitada';
+    } else if (rawDecision === 'revision') {
+      nextStatus = 'QUOTING'; // Volta para cotação
+      actionLabel = 'Pedido de Revisão';
+    } else {
+      // Escalação simplificada: se > 5000 vai para diretoria (simulado via status)
+      nextStatus = totalValue > 5000 ? 'PENDING_APPROVAL' : 'APPROVED';
+      actionLabel = 'Aprovação Concedida';
+    }
+
+    const { error } = await supabase
+      .from('req_tickets')
+      .update({ 
+        status: nextStatus,
+        approved_at: (nextStatus === 'APPROVED') ? new Date().toISOString() : null,
+        rejected_at: (nextStatus === 'REJECTED') ? new Date().toISOString() : null,
+        metadata: {
+          ...ticket.metadata,
+          approval_comment: body.comment || body.reason || '',
+          last_decision: rawDecision.toUpperCase()
+        }
+      })
+      .eq('id', ticketId);
+
+    if (error) throw error;
+
+    await supabase.rpc('req_log_audit', {
+      p_ticket_id: ticketId,
+      p_user_id: user.id,
+      p_action: actionLabel,
+      p_details: `Decisão: ${rawDecision}. Comentário: ${body.comment || body.reason || 'Sem observações'}`,
+      p_level: nextStatus === 'REJECTED' ? 'error' : 'success',
+      p_module: 'V3_APROVACAO'
     });
-    return { status: 'success', data };
+
+    return { status: 'success' };
   }
 
-  // ── /api/purchasing/tickets/{id}/direct → POST /api/purchasing/{id} ──────
-  const directMatch = path.match(/^\/api\/purchasing\/tickets\/([^/]+)\/direct$/);
-  if (directMatch) {
-    const data = await apiFetch('POST', `/api/purchasing/${directMatch[1]}`, {
-      method: 'direct',
-      ...body,
+  // 4. Fluxo de Compras (V4)
+  const purchasingMatch = path.match(/^\/api\/purchasing\/tickets\/([^/]+)\/(direct|auction)$/);
+  if (purchasingMatch) {
+    const ticketId = purchasingMatch[1];
+    
+    const { error } = await supabase
+      .from('req_tickets')
+      .update({
+        status: 'RECEIVING',
+        purchased_at: new Date().toISOString(),
+        metadata: {
+          ...body,
+          oc_number: body.oc_number || `OC-${ticketId.slice(0,6)}`
+        }
+      })
+      .eq('id', ticketId);
+
+    if (error) throw error;
+
+    await supabase.rpc('req_log_audit', {
+      p_ticket_id: ticketId,
+      p_user_id: user.id,
+      p_action: 'Ordem de Compra Emitida',
+      p_details: `OC: ${body.oc_number}. Método: ${purchasingMatch[2]}`,
+      p_level: 'success',
+      p_module: 'V4_COMPRAS'
     });
-    return { status: 'success', data };
+
+    return { status: 'success', data: { oc_number: body.oc_number } };
   }
 
-  // ── /api/receiving/tickets/{id}/physical → POST /api/receiving/{id} ──────
-  const physicalMatch = path.match(/^\/api\/receiving\/tickets\/([^/]+)\/physical$/);
-  if (physicalMatch) {
-    const data = await apiFetch('POST', `/api/receiving/${physicalMatch[1]}`, {
-      type: 'physical',
-      ...body,
+  // 5. Fluxo de Recebimento (V5)
+  const receivingMatch = path.match(/^\/api\/receiving\/tickets\/([^/]+)\/(physical|digital)$/);
+  if (receivingMatch) {
+    const ticketId = receivingMatch[1];
+    
+    const { error } = await supabase
+      .from('req_tickets')
+      .update({
+        status: 'RELEASED',
+        received_at: new Date().toISOString()
+      })
+      .eq('id', ticketId);
+
+    if (error) throw error;
+
+    await supabase.rpc('req_log_audit', {
+      p_ticket_id: ticketId,
+      p_user_id: user.id,
+      p_action: 'Recebimento Confirmado',
+      p_details: `Entrega confirmada via console de recebimento.`,
+      p_level: 'success',
+      p_module: 'V5_RECEBIMENTO'
     });
-    return { status: 'success', data };
+
+    return { status: 'success', data: { ticket_id: ticketId } };
   }
 
-  // ── /api/receiving/tickets/{id}/digital → POST /api/receiving/{id} ───────
-  const digitalMatch = path.match(/^\/api\/receiving\/tickets\/([^/]+)\/digital$/);
-  if (digitalMatch) {
-    const data = await apiFetch('POST', `/api/receiving/${digitalMatch[1]}`, {
-      type: 'digital',
-      ...body,
-    });
-    return { status: 'success', data };
-  }
-
-  // ── /api/quotation/tickets/{id} → POST /api/quotation/{id} ───────────────
-  const quotationMatch = path.match(/^\/api\/quotation\/tickets\/([^/]+)$/);
-  if (quotationMatch) {
-    const data = await apiFetch('POST', `/api/quotation/${quotationMatch[1]}`, body);
-    return { status: 'success', data };
-  }
-
-  throw new Error(`Endpoint POST não mapeado para real: ${path}`);
+  throw new Error(`Caminho POST não suportado no modo estático: ${path}`);
 }
 
 // ─── PATCH ────────────────────────────────────────────────────────────────────
 
 export async function realPatch(path: string, body: any): Promise<any> {
-  // ── /api/quotation/tickets/{id}/draft → PATCH /api/quotation/{id}/draft ──
+  // Exemplo de atualização de rascunho ou metadados
   const draftMatch = path.match(/^\/api\/quotation\/tickets\/([^/]+)\/draft$/);
   if (draftMatch) {
-    const data = await apiFetch('PATCH', `/api/quotation/${draftMatch[1]}/draft`, body);
-    return { status: 'success', data };
+    const { error } = await supabase
+      .from('req_tickets')
+      .update({ metadata: body })
+      .eq('id', draftMatch[1]);
+    if (error) throw error;
+    return { status: 'success' };
   }
 
-  throw new Error(`Endpoint PATCH não mapeado para real: ${path}`);
+  throw new Error(`Caminho PATCH não suportado no modo estático: ${path}`);
 }

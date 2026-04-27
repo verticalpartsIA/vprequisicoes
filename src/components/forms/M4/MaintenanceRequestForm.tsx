@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -23,7 +23,7 @@ import {
 import { toast } from 'sonner';
 
 import { maintenanceRequestSchema, MaintenanceRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select } from '@/components/ui/select';
@@ -64,7 +64,7 @@ export const MaintenanceRequestForm = () => {
     const toastId = toast.loading('Processando requisição de manutenção...');
 
     try {
-      const res: any = await mockApiClient.post('/api/requests/maintenance', data);
+      const res: any = await realPost('/api/requests/maintenance', data);
 
       if (data.covered_by_contract) {
         toast.success(`Ticket ${res.data.ticket_number} APROVADO via Contrato Vigente!`, { id: toastId });

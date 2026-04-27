@@ -7,7 +7,7 @@ import { Plus, Send, ClipboardList, User, Building2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 import { productRequestSchema, ProductRequestInput } from '@/lib/validation/schemas';
-import { mockApiClient } from '@/lib/api/client.mock';
+import { realPost } from '@/lib/api/real-client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -47,7 +47,7 @@ export const ProductRequestForm = () => {
   const onSubmit = async (data: ProductRequestInput) => {
     setIsLoading(true);
     try {
-      const response: any = await mockApiClient.post('/api/requests/products', data);
+      const response: any = await realPost('/api/requests/products', data);
       setToast({ 
         type: 'success', 
         message: `Sucesso! Ticket ${response.data.ticket_number} gerado.` 
