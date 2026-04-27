@@ -12,24 +12,31 @@ interface PurchaseOrderPreviewProps {
 export const PurchaseOrderPreview = ({ order }: PurchaseOrderPreviewProps) => {
   if (!order) return null;
 
+  // Aciona impressão. CSS @media print em src/styles/global.css limita o output
+  // ao .vp-print-area para que apenas o card da OC vá ao papel/PDF e tudo caiba
+  // em uma única página A4. Usar este botão para "Imprimir" ou "Salvar como PDF".
+  const acionarImpressao = () => {
+    if (typeof window !== 'undefined') window.print();
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between vp-print-hidden">
         <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] flex items-center">
           <FileText className="w-4 h-4 mr-3 text-brand" />
           Preview da Ordem de Compra
         </h4>
         <div className="flex gap-2">
-           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
+           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase" onClick={acionarImpressao} aria-label="Imprimir ordem de compra">
              <Printer className="w-3 h-3 mr-2" /> Imprimir
            </Button>
-           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase">
+           <Button variant="outline" size="sm" className="h-8 text-[10px] font-black uppercase" onClick={acionarImpressao} aria-label="Salvar como PDF">
              <Download className="w-3 h-3 mr-2" /> PDF
            </Button>
         </div>
       </div>
 
-      <Card className="bg-white text-slate-900 overflow-hidden shadow-2xl transition-transform hover:scale-[1.01] duration-500 origin-top">
+      <Card className="vp-print-area bg-white text-slate-900 overflow-hidden shadow-2xl origin-top">
         <CardContent className="p-10 space-y-10">
           {/* Header OC */}
           <div className="flex justify-between border-b-2 border-slate-900 pb-8">
@@ -123,8 +130,8 @@ export const PurchaseOrderPreview = ({ order }: PurchaseOrderPreviewProps) => {
           </div>
         </CardContent>
       </Card>
-      
-      <p className="text-[9px] text-center text-slate-500 italic">Este documento é uma representação digital válida da Ordem de Compra oficial da VerticalParts.</p>
+
+      <p className="text-[9px] text-center text-slate-500 italic vp-print-hidden">Este documento é uma representação digital válida da Ordem de Compra oficial da VerticalParts.</p>
     </div>
   );
 };

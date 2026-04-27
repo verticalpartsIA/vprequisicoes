@@ -24,3 +24,57 @@
     @apply inline-flex items-center justify-center ml-1 text-slate-400 hover:text-brand cursor-help transition-colors;
   }
 }
+
+/* ─────────────────────────────────────────────────────────────────────
+   IMPRESSÃO / EXPORTAÇÃO PDF
+   Regra: ao imprimir uma página com `.vp-print-area`, esconder tudo
+   fora dessa área. Resultado: a ordem de compra sai sozinha em
+   uma página A4, sem sidebar, header, botões ou paddings externos.
+   ───────────────────────────────────────────────────────────────────── */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Esconde tudo que está fora da área imprimível, quando ela existir */
+  body:has(.vp-print-area) *:not(.vp-print-area):not(.vp-print-area *) {
+    visibility: hidden !important;
+  }
+
+  body:has(.vp-print-area) .vp-print-area {
+    visibility: visible !important;
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    box-shadow: none !important;
+    transform: none !important;
+    border: none !important;
+    margin: 0 !important;
+  }
+  body:has(.vp-print-area) .vp-print-area * {
+    visibility: visible !important;
+  }
+
+  /* Itens explicitamente marcados para não imprimir */
+  .vp-print-hidden,
+  .vp-print-hidden * {
+    display: none !important;
+  }
+
+  /* Evita quebras feias dentro do conteúdo principal */
+  .vp-print-area,
+  .vp-print-area table,
+  .vp-print-area thead,
+  .vp-print-area tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
