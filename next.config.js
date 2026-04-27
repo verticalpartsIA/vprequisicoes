@@ -2,8 +2,10 @@
 const nextConfig = {
   reactStrictMode: true,
 
-  // Standalone: build otimizado para Docker
-  output: 'standalone',
+  // Standalone: opt-in via env (apenas para builds Docker locais).
+  // No deploy Hostinger usamos `node server.js` que faz `next start` —
+  // neste caso, deixar standalone desligado para evitar warnings.
+  ...(process.env.NEXT_OUTPUT_STANDALONE === '1' ? { output: 'standalone' } : {}),
 
   // Turbopack (padrão no Next.js 16) — aliases já resolvidos pelo tsconfig.json
   turbopack: {},
