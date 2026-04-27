@@ -26,7 +26,7 @@
     "test:e2e:modules": "playwright test --grep @modules --config=playwright.config.ts",
     "test:e2e:workflow": "playwright test --grep @workflow --config=playwright.config.ts",
     "test:e2e:report": "playwright show-report",
-    "postinstall": "node -e \"const f=require(\\\"fs\\\"); if(!f.existsSync(\\\".next/BUILD_ID\\\") && process.env.NODE_ENV===\\\"production\\\"){require(\\\"child_process\\\").execSync(\\\"npx next build\\\",{stdio:\\\"inherit\\\"})}\""
+    "postinstall": "node -e \"const f=require(\\\"fs\\\"); if(!f.existsSync(\\\".next/BUILD_ID\\\") && process.env.NODE_ENV===\\\"production\\\"){require(\\\"child_process\\\").execSync(\\\"npx next build --webpack\\\",{stdio:\\\"inherit\\\"})}\""
   },
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",

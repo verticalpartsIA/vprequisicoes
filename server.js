@@ -25,8 +25,8 @@ const buildIdPath = path.join(__dirname, '.next', 'BUILD_ID');
 const nextBin = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
 
 if (isProd && !fs.existsSync(buildIdPath)) {
-  console.log('[server.js] .next/BUILD_ID ausente. Executando `next build`...');
-  const built = spawnSync(process.execPath, [nextBin, 'build'], {
+  console.log('[server.js] .next/BUILD_ID ausente. Executando `next build --webpack`...');
+  const built = spawnSync(process.execPath, [nextBin, 'build', '--webpack'], {
     cwd: __dirname,
     stdio: 'inherit',
     env: process.env,
