@@ -21,7 +21,7 @@ function QuotationContent() {
 
     const fetchTickets = async () => {
       try {
-        const response = await realApiClient('/api/requests');
+        const response = await realApiClient('/api/quotation/list');
         setTickets(Array.isArray(response.data) ? response.data : (response ?? []));
       } catch (err) {
         console.error('[QuotationList]', err);

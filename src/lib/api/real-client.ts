@@ -90,7 +90,10 @@ export async function realGet(path: string, params?: Record<string, string>): Pr
     .order('created_at', { ascending: false });
 
   // Regras de Filtro
-  if (path === '/api/requests') {
+  if (path === '/api/quotation/list') {
+    // Tela de cotação (kanban): apenas tickets aguardando ser cotados
+    query = query.in('status', ['SUBMITTED', 'QUOTING'] as StatusType[]);
+  } else if (path === '/api/requests') {
     // Para a lista geral, mostramos o que é do usuário OU o que está aguardando cotação (para compradores)
     query = query.or(`requester_email.eq.${user.email},status.in.(SUBMITTED,QUOTING)`);
   } else if (path === '/api/requests/rental') {
