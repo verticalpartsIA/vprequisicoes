@@ -60,14 +60,10 @@ export const ServiceRequestForm = () => {
     try {
       const res: any = await realPost('/api/requests/services', data);
       toast.success(`Ticket ${res.data.ticket_number} gerado com sucesso!`, { id: toastId });
-
-      setTimeout(() => {
-        router.push('/');
-      }, 1500);
+      router.push('/');
 
     } catch (err: any) {
       toast.error(err.message || 'Erro ao processar requisição', { id: toastId });
-    } finally {
       setIsSubmitting(false);
     }
   };

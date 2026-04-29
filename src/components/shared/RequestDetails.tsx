@@ -204,31 +204,101 @@ export const RequestDetails = ({ ticket }: RequestDetailsProps) => {
     </div>
   );
 
-  const renderGeneric = () => (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {Object.entries(metadata).map(([key, value]) => {
-          if (key === 'quotation' || key === 'itens' || typeof value === 'object') return null;
-          return (
+  // Label map: snake_case English → Portuguese
+  const FIELD_LABELS: Record<string, string> = {
+    service_type: 'Tipo de Serviço', scope_description: 'Escopo', location: 'Local',
+    location_address: 'Endereço', estimated_duration: 'Duração Estimada',
+    payment_by_milestone: 'Pagamento por Etapa', requester_name: 'Solicitante',
+    department: 'Departamento', cost_center: 'Centro de Custo',
+    justificativa: 'Justificativa', justification: 'Justificativa',
+    maintenance_type: 'Tipo de Manutenção', asset_name: 'Ativo', asset_id: 'ID do Ativo',
+    priority: 'Prioridade', covered_by_contract: 'Coberto por Contrato',
+    direction: 'Direção', cargo_type: 'Tipo de Carga', origin: 'Origem',
+    destination: 'Destino', weight_kg: 'Peso (kg)', pieces: 'Volumes/Peças',
+    vehicle_type: 'Tipo de Veículo', requires_insurance: 'Seguro Necessário',
+    equipment_name: 'Equipamento', equipment_category: 'Categoria',
+    quantity: 'Quantidade', start_date: 'Data Início', end_date: 'Data Fim',
+    usage_location: 'Local de Uso', preferred_supplier: 'Fornecedor Preferido',
+    requester_email: 'E-mail do Solicitante',
+  };
+
+  const SKIP_FIELDS = new Set(['quotation', 'itens', 'items', 'draft', 'approval_comment',
+    'last_decision', 'approved_by_name', 'approver_email', 'winner_supplier', 'winner_reason',
+    'requires_receiving', 'purchase_address', 'oc_number']);
+
+  const fmtValue = (key: string, value: unknown): string => {
+    if (typeof value === 'boolean') return value ? 'Sim' : 'Não';
+    if (key === 'start_date' || key === 'end_date') {
+      const d = new Date(String(value));
+      return isNaN(d.getTime()) ? String(value) : d.toLocaleDateString('pt-BR');
+    }
+    if (key === 'direction') return value === 'inbound' ? 'Entrada' : 'Saída';
+    return String(value || 'N/A');
+  };
+
+  const renderModuleFields = (priorityKeys: string[]) => {
+    const all = Object.entries(metadata).filter(([k, v]) =>
+      !SKIP_FIELDS.has(k) && typeof v !== 'object' && v !== null && v !== ''
+    );
+    // Priority keys first, then remaining
+    const ordered = [
+      ...priorityKeys.map(k => all.find(([key]) => key === k)).filter(Boolean) as [string, unknown][],
+      ...all.filter(([k]) => !priorityKeys.includes(k))
+    ];
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {ordered.map(([key, value]) => (
             <div key={key} className="p-3 bg-white/5 rounded-lg border border-white/5">
-              <p className="text-[10px] text-slate-500 uppercase font-black mb-1">{key.replace(/_/g, ' ')}</p>
-              <p className="text-sm text-white font-medium">{String(value)}</p>
+              <p className="text-[10px] text-slate-500 uppercase font-black mb-1">
+                {FIELD_LABELS[key] ?? key.replace(/_/g, ' ')}
+              </p>
+              <p className="text-sm text-white font-medium">{fmtValue(key, value)}</p>
             </div>
-          );
-        })}
+          ))}
+        </div>
+        {(metadata.justificativa || metadata.justification) && (
+          <div className="p-4 bg-brand/5 border border-brand/10 rounded-xl">
+            <p className="text-[10px] text-brand uppercase font-black mb-2">Justificativa</p>
+            <p className="text-sm text-slate-300 italic">"{metadata.justificativa || metadata.justification}"</p>
+          </div>
+        )}
       </div>
-      <div className="p-4 bg-brand/5 border border-brand/10 rounded-xl">
-        <p className="text-[10px] text-brand uppercase font-black mb-2">Justificativa</p>
-        <p className="text-sm text-slate-300 italic">"{metadata.justificativa || 'Sem justificativa informada'}"</p>
-      </div>
-    </div>
-  );
+    );
+  };
+
+  const renderM3 = () => renderModuleFields([
+    'service_type', 'scope_description', 'location', 'estimated_duration',
+    'requester_name', 'department', 'payment_by_milestone',
+  ]);
+
+  const renderM4 = () => renderModuleFields([
+    'maintenance_type', 'asset_name', 'asset_id', 'priority',
+    'location', 'requester_name', 'department', 'covered_by_contract',
+  ]);
+
+  const renderM5 = () => renderModuleFields([
+    'direction', 'cargo_type', 'origin', 'destination',
+    'weight_kg', 'pieces', 'vehicle_type', 'requester_name', 'department',
+  ]);
+
+  const renderM6 = () => renderModuleFields([
+    'equipment_name', 'equipment_category', 'quantity',
+    'start_date', 'end_date', 'usage_location', 'preferred_supplier',
+    'requester_name', 'department',
+  ]);
+
+  const renderGeneric = () => renderModuleFields([]);
 
   return (
     <div className="space-y-8">
       {module === 'M1_PRODUTOS' && renderM1()}
       {module === 'M2_VIAGENS' && renderM2()}
-      {module !== 'M1_PRODUTOS' && module !== 'M2_VIAGENS' && renderGeneric()}
+      {module === 'M3_SERVICOS' && renderM3()}
+      {module === 'M4_MANUTENCAO' && renderM4()}
+      {module === 'M5_FRETE' && renderM5()}
+      {module === 'M6_LOCACAO' && renderM6()}
+      {!['M1_PRODUTOS','M2_VIAGENS','M3_SERVICOS','M4_MANUTENCAO','M5_FRETE','M6_LOCACAO'].includes(module) && renderGeneric()}
       
       {/* Seção de Cotação (se houver e não for M1 que já mostra na tabela) */}
       {module !== 'M1_PRODUTOS' && metadata.quotation && (

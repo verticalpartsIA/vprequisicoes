@@ -54,10 +54,9 @@ export const RentalRequestForm = () => {
     try {
       const response: any = await realPost('/api/requests/rental', data);
       toast.success(`Ticket ${response.data.ticket_number} gerado com sucesso!`, { id: toastId });
-      setTimeout(() => router.push('/'), 1500);
+      router.push('/');
     } catch (error: any) {
       toast.error(error.message || 'Erro ao processar requisição.', { id: toastId });
-    } finally {
       setIsSubmitting(false);
     }
   };

@@ -83,7 +83,7 @@ function DashboardContent() {
           inverse
         />
         <KPICard 
-          label="Economia em Leilão" 
+          label="Total Gasto (Cotações)"
           value={Number(data.kpis.total_auction_savings || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           icon={<DollarSign className="w-6 h-6 text-brand-success" />}
         />

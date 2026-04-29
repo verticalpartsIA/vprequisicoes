@@ -72,13 +72,10 @@ export const MaintenanceRequestForm = () => {
         toast.success(`Ticket ${res.data.ticket_number} enviado para cotação.`, { id: toastId });
       }
 
-      setTimeout(() => {
-        router.push('/');
-      }, 1500);
+      router.push('/');
 
     } catch (err: any) {
       toast.error(err.message || 'Erro ao processar requisição', { id: toastId });
-    } finally {
       setIsSubmitting(false);
     }
   };

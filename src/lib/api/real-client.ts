@@ -75,11 +75,88 @@ export async function realGet(path: string, params?: Record<string, string>): Pr
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Usuário não autenticado');
 
-  // 1. Dashbord Summary
+  // 1. Dashboard Summary — built from direct queries (no RPC dependency)
   if (path === '/api/dashboard/summary') {
-    const { data, error } = await supabase.rpc('req_get_dashboard_summary' as any);
-    if (error) throw error;
-    return data;
+    const period = params?.period || '30d';
+    const moduleFilter = params?.module || 'ALL';
+    const days = period === '7d' ? 7 : period === '90d' ? 90 : 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
+
+    let base = supabase.from('req_tickets').select('*', { count: 'exact', head: false });
+    if (moduleFilter !== 'ALL') base = base.eq('module', moduleFilter as ModuleType);
+
+    const [allRes, pendingRes, quotRes, approvedRes] = await Promise.all([
+      supabase.from('req_tickets').select('id,status,module,created_at,approved_at,metadata', { count: 'exact' })
+        .gte('created_at', since),
+      supabase.from('req_tickets').select('id', { count: 'exact', head: true }).eq('status', 'PENDING_APPROVAL'),
+      supabase.from('req_quotations').select('total_value,created_at').gte('created_at', since),
+      supabase.from('req_tickets').select('created_at,approved_at')
+        .eq('status', 'APPROVED').not('approved_at', 'is', null).gte('created_at', since),
+    ]);
+
+    const tickets = allRes.data || [];
+    const quotations = quotRes.data || [];
+    const approved = approvedRes.data || [];
+
+    // KPIs
+    const total_tickets = allRes.count ?? tickets.length;
+    const tickets_pending_approval = pendingRes.count ?? 0;
+    const total_spent = quotations.reduce((s: number, q: any) => s + Number(q.total_value || 0), 0);
+    const slaArr = approved.map((t: any) => {
+      const diff = new Date(t.approved_at).getTime() - new Date(t.created_at).getTime();
+      return diff / 3600000;
+    });
+    const avg_sla_hours = slaArr.length ? Math.round(slaArr.reduce((a: number, b: number) => a + b, 0) / slaArr.length) : 0;
+
+    // Savings timeline (total_value per day)
+    const byDay: Record<string, number> = {};
+    for (const q of quotations) {
+      const day = q.created_at?.slice(0, 10) ?? '';
+      if (day) byDay[day] = (byDay[day] || 0) + Number(q.total_value || 0);
+    }
+    const savings_timeline = Object.entries(byDay).sort(([a], [b]) => a.localeCompare(b))
+      .map(([label, value]) => ({ label: new Date(label).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }), value }));
+
+    // Module distribution
+    const modCount: Record<string, number> = {};
+    for (const t of tickets) { modCount[t.module] = (modCount[t.module] || 0) + 1; }
+    const MOD_COLORS: Record<string, string> = {
+      M1_PRODUTOS: '#f97316', M2_VIAGENS: '#3b82f6', M3_SERVICOS: '#8b5cf6',
+      M4_MANUTENCAO: '#ef4444', M5_FRETE: '#10b981', M6_LOCACAO: '#f59e0b',
+    };
+    const MOD_LABEL: Record<string, string> = {
+      M1_PRODUTOS: 'Produtos', M2_VIAGENS: 'Viagens', M3_SERVICOS: 'Serviços',
+      M4_MANUTENCAO: 'Manutenção', M5_FRETE: 'Frete', M6_LOCACAO: 'Locação',
+    };
+    const module_distribution = Object.entries(modCount).map(([mod, count]) => ({
+      label: MOD_LABEL[mod] || mod, value: count, color: MOD_COLORS[mod] || '#94a3b8',
+    }));
+
+    // Status distribution
+    const stCount: Record<string, number> = {};
+    for (const t of tickets) { stCount[t.status] = (stCount[t.status] || 0) + 1; }
+    const status_distribution = Object.entries(stCount).map(([label, value]) => ({ label, value }));
+
+    // Top suppliers from quotation metadata
+    const supMap: Record<string, { pedidos: number; total: number }> = {};
+    for (const q of quotations) {
+      const name = 'Fornecedor';
+      if (!supMap[name]) supMap[name] = { pedidos: 0, total: 0 };
+      supMap[name].pedidos++;
+      supMap[name].total += Number((q as any).total_value || 0);
+    }
+    const top_suppliers = Object.entries(supMap)
+      .sort(([, a], [, b]) => b.total - a.total)
+      .slice(0, 5)
+      .map(([name, d]) => ({ name, orders: d.pedidos, total: d.total }));
+
+    return {
+      kpis: { total_tickets, tickets_pending_approval, total_auction_savings: total_spent, avg_sla_hours },
+      savings_timeline,
+      module_distribution,
+      status_distribution,
+      top_suppliers,
+    };
   }
 
   // 2. Listagem de Tickets (View)
