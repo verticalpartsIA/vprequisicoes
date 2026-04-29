@@ -78,7 +78,7 @@ export default function ReceivingListPage() {
               <thead>
                 <tr className="bg-slate-50 text-slate-500 text-[10px] uppercase font-bold tracking-widest border-b border-slate-200">
                   <th className="py-4 pl-6">Tipo</th>
-                  <th className="py-4">Identificação / OC</th>
+                  <th className="py-4">Ticket / Descrição</th>
                   <th className="py-4">Fornecedor</th>
                   <th className="py-4">Destino</th>
                   <th className="py-4">Data Compra</th>
@@ -122,12 +122,9 @@ export default function ReceivingListPage() {
                         </td>
                         <td className="py-5">
                           <div className="flex flex-col">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-bold text-slate-700">OC-{String(ticket.id).padStart(6, '0')}</span>
-                              <span className="text-[10px] font-mono text-slate-400">#{ticket._ticketNumber}</span>
-                            </div>
-                            <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate max-w-[150px]">
-                              {ticket._justificativa}
+                            <span className="text-sm font-bold text-slate-700">#{ticket._ticketNumber}</span>
+                            <span className="text-[10px] text-slate-400 font-medium mt-0.5 truncate max-w-[200px]">
+                              {ticket.title || ticket._justificativa}
                             </span>
                           </div>
                         </td>
@@ -143,7 +140,9 @@ export default function ReceivingListPage() {
                         <td className="py-5">
                           <div className="flex items-center gap-1.5 text-slate-500 text-xs font-medium">
                             <Calendar className="w-3 h-3" />
-                            16/04/2026
+                            {ticket.purchased_at
+                              ? new Date(ticket.purchased_at).toLocaleDateString('pt-BR')
+                              : new Date(ticket.created_at).toLocaleDateString('pt-BR')}
                           </div>
                         </td>
                         <td className="py-5 text-right pr-6">

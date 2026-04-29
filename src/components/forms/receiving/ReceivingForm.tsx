@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
-import { ShoppingBag, CheckCircle2, AlertTriangle, User, FileText, Send } from 'lucide-react';
+import { ShoppingBag, CheckCircle2, AlertTriangle, User, FileText, Send, Clock } from 'lucide-react';
 
 import { receivingSchema, ReceivingInput } from '@/lib/validation/schemas';
 import { supabase } from '@/lib/supabase/client';
@@ -29,6 +29,22 @@ export const ReceivingForm = ({ ticket }: ReceivingFormProps) => {
   const receiptType = isPhysical ? 'physical' : 'digital';
 
   const winningQuotation = ticket.quotation?.items?.[0]?.suppliers?.find((s: any) => s.is_winner);
+
+  const fmtDateTime = (iso: string | null | undefined) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const createdAt = ticket.created_at ?? ticket._submittedAt ?? null;
+  const receivedAt = ticket.received_at ?? null;
+
+  const slaHours = (() => {
+    if (!createdAt || !receivedAt) return null;
+    const delta = new Date(receivedAt).getTime() - new Date(createdAt).getTime();
+    if (delta <= 0) return 0;
+    return Math.round(delta / 1000 / 60 / 60);
+  })();
 
   const { register, handleSubmit, watch, formState: { errors } } = useForm<ReceivingInput>({
     resolver: zodResolver(receivingSchema),
@@ -119,10 +135,26 @@ export const ReceivingForm = ({ ticket }: ReceivingFormProps) => {
                  </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                 <div className="text-right hidden md:block">
-                    <p className="text-[9px] text-slate-500 font-black uppercase tracking-widest mb-1">Status da OC</p>
-                    <span className="text-xs font-mono font-black text-brand-success bg-brand-success/10 px-2 py-1 rounded">EMITIDA #{ticket.id.toString().padStart(6, '0')}</span>
+              <div className="hidden md:flex items-center gap-2 text-right">
+                 <Clock className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                 <div className="space-y-0.5">
+                    {createdAt && (
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        Requisição: <span className="text-slate-700 font-bold">{fmtDateTime(createdAt)}</span>
+                      </p>
+                    )}
+                    {receivedAt ? (
+                      <p className="text-[10px] text-slate-500 font-medium">
+                        Recebido em: <span className="text-emerald-700 font-bold">{fmtDateTime(receivedAt)}</span>
+                      </p>
+                    ) : (
+                      <p className="text-[10px] text-amber-600 font-bold uppercase tracking-wider">Em trânsito</p>
+                    )}
+                    {slaHours !== null ? (
+                      <p className="text-[10px] text-brand font-black uppercase tracking-wider">SLA: {slaHours} hora{slaHours !== 1 ? 's' : ''}</p>
+                    ) : createdAt && (
+                      <p className="text-[10px] text-slate-400 font-medium">SLA: Pendente</p>
+                    )}
                  </div>
               </div>
            </div>
