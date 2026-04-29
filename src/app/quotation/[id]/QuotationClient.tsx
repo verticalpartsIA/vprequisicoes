@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase/client';
 import { ApprovalProgress } from '@/components/workflow/ApprovalProgress';
-import { ItemsTable, QuotationItem } from './components/ItemsTable';
+import { ItemsTable, QuotationItem, WinReason } from './components/ItemsTable';
 import {
   ClipboardList,
   Loader2,
@@ -75,7 +75,7 @@ export default function QuotationClient({ overrideId }: { overrideId?: string })
             let suppliers = existingSuppliers.length > 0
               ? existingSuppliers
               : legacyName
-                ? [{ name: legacyName, price: legacyPrice, is_winner: true }]
+                ? [{ name: legacyName, price: legacyPrice, delivery_days: 0, is_winner: true, win_reason: undefined }]
                 : [];
 
             return {
@@ -102,7 +102,7 @@ export default function QuotationClient({ overrideId }: { overrideId?: string })
     setItems(prev => {
       const next = [...prev];
       const item = { ...next[itemIdx] };
-      item.suppliers = [...item.suppliers, { name: '', price: 0, is_winner: false }];
+      item.suppliers = [...item.suppliers, { name: '', price: 0, delivery_days: 0, is_winner: false }];
       next[itemIdx] = item;
       return next;
     });
@@ -127,7 +127,7 @@ export default function QuotationClient({ overrideId }: { overrideId?: string })
   const handleUpdateSupplier = (
     itemIdx: number,
     supplierIdx: number,
-    field: 'name' | 'price',
+    field: 'name' | 'price' | 'delivery_days' | 'win_reason',
     value: string | number
   ) => {
     setItems(prev => {
@@ -182,6 +182,10 @@ export default function QuotationClient({ overrideId }: { overrideId?: string })
       }
       if (!winner.price || winner.price <= 0) {
         setToast({ type: 'error', message: `Item ${i + 1}: o fornecedor vencedor precisa ter preço preenchido.` });
+        return;
+      }
+      if (!winner.win_reason) {
+        setToast({ type: 'error', message: `Item ${i + 1}: selecione o motivo pelo qual o fornecedor venceu.` });
         return;
       }
     }

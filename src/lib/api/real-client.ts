@@ -270,6 +270,13 @@ export async function realPost(path: string, body: any): Promise<any> {
         }
       }
       
+      // Extrai dados do fornecedor vencedor do primeiro item (para req_quotations)
+      const firstItemWinner = body.items?.[0]?.winner || body.items?.[0]?.suppliers?.find((s: any) => s.is_winner);
+      const winnerDeliveryDays = firstItemWinner?.delivery_days || body.delivery_days || 0;
+      const winReasonLabel = firstItemWinner?.win_reason
+        ? { price: 'Melhor Preço', deadline: 'Melhor Prazo', both: 'Preço e Prazo' }[firstItemWinner.win_reason as string] || ''
+        : '';
+
       // Inserir Cotação
       const { data: quotation, error: quotErr } = await supabase
         .from('req_quotations')
@@ -277,8 +284,8 @@ export async function realPost(path: string, body: any): Promise<any> {
           ticket_id: ticketId,
           supplier_id: finalSupplierId,
           total_value: body.total_amount,
-          delivery_days: body.delivery_days || 0,
-          notes: body.notes,
+          delivery_days: winnerDeliveryDays,
+          notes: body.notes || (winReasonLabel ? `Critério de seleção: ${winReasonLabel}` : ''),
           status: 'RECEIVED',
           items: body.items || []
         })
@@ -297,25 +304,29 @@ export async function realPost(path: string, body: any): Promise<any> {
       // Atualizar Ticket preservando dados originais (IMPORTANTE para M2-M6)
       await supabase
         .from('req_tickets')
-        .update({ 
+        .update({
           status: 'PENDING_APPROVAL',
           quoted_at: new Date().toISOString(),
-          metadata: { 
-            ...(existingTicket?.metadata || {}), 
+          metadata: {
+            ...(existingTicket?.metadata || {}),
             quotation: {
               ...body,
-              quotation_id: quotation.id
+              quotation_id: quotation.id,
+              win_reason: firstItemWinner?.win_reason,
+              win_reason_label: winReasonLabel,
+              delivery_days: winnerDeliveryDays
             }
           }
         })
         .eq('id', ticketId);
 
       // Auditoria
+      const auditDetail = `Cotação registrada. Total: R$ ${body.total_amount}. Fornecedor vencedor: ${firstItemWinner?.name || finalSupplierId}. Critério: ${winReasonLabel || 'não informado'}. Iniciada Aprovação.`;
       await supabase.rpc('req_log_audit', {
         p_ticket_id: ticketId,
         p_user_id: user.id,
         p_action: 'Cotação enviada',
-        p_details: `Cotação registrada. Total: R$ ${body.total_amount}. Iniciada Aprovação.`,
+        p_details: auditDetail,
         p_level: 'success',
         p_module: 'V2_COTACAO'
       });
