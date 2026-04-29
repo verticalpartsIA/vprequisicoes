@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ShoppingCart, Filter, ArrowRight, Gavel, Clock } from 'lucide-react';
+import { ShoppingCart, Filter, ArrowRight, Clock } from 'lucide-react';
 import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 import Link from 'next/link';
 import { realGet as realApiClient } from '@/lib/api/real-client';
@@ -91,7 +91,7 @@ export default function PurchasingListPage() {
                   </tr>
                 ) : (
                   tickets.map((ticket) => {
-                    const amount = Number(ticket.quotation?.total_amount || 0);
+                    const amount = Number(ticket._totalAmount || ticket._quotation?.total_amount || 0);
                     const isUrgent = amount > 1000 || ticket._moduleShort === 'M3';
 
                     return (
@@ -118,19 +118,25 @@ export default function PurchasingListPage() {
                         </td>
                         <td className="py-5">
                           <span className="text-sm font-mono font-bold text-slate-900">
-                            {amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                            {amount > 0
+                              ? amount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+                              : <span className="text-slate-400 text-xs">Sem cotação</span>}
                           </span>
                         </td>
                         <td className="py-5">
-                          {amount >= 500 ? (
-                            <div className="flex items-center text-amber-700 text-[10px] font-bold uppercase bg-amber-50 px-2 py-1 rounded border border-amber-200">
-                              <Gavel className="w-3 h-3 mr-1.5" /> Leilão Recomendado
-                            </div>
-                          ) : (
-                            <div className="flex items-center text-emerald-700 text-[10px] font-bold uppercase bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
-                              Compra Direta
-                            </div>
-                          )}
+                          {(() => {
+                            const winner = ticket._quotation?.items?.[0]?.suppliers?.find((s: any) => s.is_winner);
+                            return winner?.name ? (
+                              <div className="flex flex-col">
+                                <span className="text-[10px] text-slate-500 uppercase font-bold">Vencedor</span>
+                                <span className="text-xs font-bold text-emerald-700 truncate max-w-[140px]">{winner.name}</span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center text-emerald-700 text-[10px] font-bold uppercase bg-emerald-50 px-2 py-1 rounded border border-emerald-200">
+                                Cotação Finalizada
+                              </div>
+                            );
+                          })()}
                         </td>
                         <td className="py-5 text-right pr-4">
                           <Link href={`/purchasing/${ticket.id}`}>
@@ -170,7 +176,7 @@ export default function PurchasingListPage() {
         steps={[
           "Selecione um ticket aprovado",
           "Revise as cotações vencedoras",
-          "Escolha a modalidade (Leilão/Direta)",
+          "Confirme o fornecedor vencedor da cotação",
           "Gere a Ordem de Compra (OC)"
         ]}
       />

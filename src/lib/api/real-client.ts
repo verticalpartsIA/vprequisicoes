@@ -360,16 +360,26 @@ export async function realPost(path: string, body: any): Promise<any> {
       actionLabel = 'Aprovação Concedida';
     }
 
+    // Busca nome do aprovador para guardar no documento
+    const { data: approverProfile } = await supabase
+      .from('req_profiles')
+      .select('full_name, email')
+      .eq('id', user.id)
+      .maybeSingle();
+    const approverName = approverProfile?.full_name || approverProfile?.email || user.email || 'Aprovador';
+
     const { error } = await supabase
       .from('req_tickets')
-      .update({ 
+      .update({
         status: nextStatus,
         approved_at: (nextStatus === 'APPROVED') ? new Date().toISOString() : null,
         rejected_at: (nextStatus === 'REJECTED') ? new Date().toISOString() : null,
         metadata: {
-          ...ticket.metadata,
+          ...(ticket.metadata as any),
           approval_comment: body.comment || body.reason || '',
-          last_decision: rawDecision.toUpperCase()
+          last_decision: rawDecision.toUpperCase(),
+          approved_by_name: nextStatus === 'APPROVED' ? approverName : undefined,
+          approver_email: nextStatus === 'APPROVED' ? user.email : undefined,
         }
       })
       .eq('id', ticketId);
@@ -392,15 +402,24 @@ export async function realPost(path: string, body: any): Promise<any> {
   const purchasingMatch = path.match(/^\/api\/purchasing\/tickets\/([^/]+)\/(direct|auction)$/);
   if (purchasingMatch) {
     const ticketId = purchasingMatch[1];
-    
+
+    // Se não requer recebimento, vai direto para RELEASED
+    const requiresReceiving = body.requires_receiving !== false;
+    const nextPurchasingStatus: StatusType = requiresReceiving ? 'RECEIVING' : 'RELEASED';
+    const ocNumber = body.oc_number || `OC-${ticketId.slice(0, 6)}`;
+
     const { error } = await supabase
       .from('req_tickets')
       .update({
-        status: 'RECEIVING',
+        status: nextPurchasingStatus,
         purchased_at: new Date().toISOString(),
         metadata: {
           ...body,
-          oc_number: body.oc_number || `OC-${ticketId.slice(0,6)}`
+          oc_number: ocNumber,
+          requires_receiving: requiresReceiving,
+          winner_supplier: body.winner_name,
+          winner_reason: body.winner_reason,
+          purchase_address: 'Rua Armandina Braga de Almeida, 383 - Guarulhos/SP',
         }
       })
       .eq('id', ticketId);
@@ -411,12 +430,12 @@ export async function realPost(path: string, body: any): Promise<any> {
       p_ticket_id: ticketId,
       p_user_id: user.id,
       p_action: 'Ordem de Compra Emitida',
-      p_details: `OC: ${body.oc_number}. Método: ${purchasingMatch[2]}`,
+      p_details: `OC: ${ocNumber}. Fornecedor: ${body.winner_name || body.supplier_name}. Recebimento: ${requiresReceiving ? 'Sim' : 'Não'}.`,
       p_level: 'success',
       p_module: 'V4_COMPRAS'
     });
 
-    return { status: 'success', data: { oc_number: body.oc_number } };
+    return { status: 'success', data: { oc_number: ocNumber } };
   }
 
   // 5. Fluxo de Recebimento (V5)
