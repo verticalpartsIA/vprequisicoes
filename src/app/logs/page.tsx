@@ -30,6 +30,26 @@ interface LogEntry {
   metadata: Record<string, unknown>;
   ticket_id: string | null;
   ticket_number: string | null;
+  ticket_created_at: string | null;
+  ticket_received_at: string | null;
+}
+
+interface WorkflowChain {
+  requisitor: string;
+  cotador: string;
+  aprovador: string;
+  comprador: string;
+  almoxarife: string;
+}
+
+function formatSLA(start: string | null, end: string | null): string | null {
+  if (!start || !end) return null;
+  const ms = new Date(end).getTime() - new Date(start).getTime();
+  if (ms <= 0) return 'SLA 0 dias/ 0 horas';
+  const totalHours = Math.floor(ms / 1000 / 60 / 60);
+  const days = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  return `SLA ${days} dia${days !== 1 ? 's' : ''}/ ${hours} hora${hours !== 1 ? 's' : ''}`;
 }
 
 const LEVEL_CONFIG: Record<LogLevel, { icon: React.ReactNode; badge: string; row: string }> = {
@@ -80,7 +100,7 @@ export default function LogsPage() {
             metadata,
             ticket_id,
             req_profiles:user_id ( full_name, email ),
-            req_tickets:ticket_id ( ticket_number )
+            req_tickets:ticket_id ( ticket_number, created_at, received_at )
           `)
           .order('created_at', { ascending: false })
           .limit(500);
@@ -101,6 +121,8 @@ export default function LogsPage() {
           metadata: row.metadata ?? {},
           ticket_id: row.ticket_id ?? null,
           ticket_number: row.req_tickets?.ticket_number ?? null,
+          ticket_created_at: row.req_tickets?.created_at ?? null,
+          ticket_received_at: row.req_tickets?.received_at ?? null,
         }));
 
         setLogs(mapped);
@@ -112,6 +134,32 @@ export default function LogsPage() {
     }
     loadLogs();
   }, []);
+
+  // Workflow chains por ticket — built from the already-loaded log entries, zero extra queries
+  const ticketChains = useMemo(() => {
+    const chains: Record<string, WorkflowChain> = {};
+    for (const log of logs) {
+      if (!log.ticket_id) continue;
+      if (!chains[log.ticket_id]) {
+        chains[log.ticket_id] = { requisitor: 'N/A', cotador: 'N/A', aprovador: 'N/A', comprador: 'N/A', almoxarife: 'N/A' };
+      }
+      const c = chains[log.ticket_id];
+      const act = log.action.toLowerCase();
+      const mod = log.module;
+      if (act.includes('criada') || act.includes('criado') || act.includes('criação')) {
+        c.requisitor = log.user;
+      } else if (mod === 'V2_COTACAO' || mod === 'quotation' || act.includes('cotação')) {
+        c.cotador = log.user;
+      } else if (mod === 'V3_APROVACAO' || mod === 'approval' || act.includes('aprovação') || act.includes('aprovad')) {
+        c.aprovador = log.user;
+      } else if (mod === 'V4_COMPRAS' || mod === 'purchasing' || act.includes('ordem de compra') || act.includes('compra')) {
+        c.comprador = log.user;
+      } else if (mod === 'receiving' || mod === 'V5_RECEBIMENTO' || act.includes('recebimento') || act.includes('atesto')) {
+        c.almoxarife = log.user;
+      }
+    }
+    return chains;
+  }, [logs]);
 
   const filtered = useMemo(() => logs.filter(log => {
     const haystack = [log.action, log.details, log.user, log.module, log.ticket_number ?? '']
@@ -247,6 +295,11 @@ export default function LogsPage() {
             <div className="divide-y divide-slate-100">
               {filtered.map(log => {
                 const cfg = LEVEL_CONFIG[log.level];
+                const sla = formatSLA(log.ticket_created_at, log.ticket_received_at);
+                const chain = log.ticket_id ? ticketChains[log.ticket_id] : null;
+                const chainStr = chain
+                  ? `Requisitor: ${chain.requisitor} | Cotador: ${chain.cotador} | Aprovador: ${chain.aprovador} | Comprador: ${chain.comprador} | Almoxarife: ${chain.almoxarife}`
+                  : null;
                 return (
                   <div key={log.id} className={`flex items-start gap-4 p-5 transition-colors ${cfg.row}`}>
                     <div className="flex-shrink-0 mt-0.5">{cfg.icon}</div>
@@ -269,6 +322,11 @@ export default function LogsPage() {
                           <Clock className="w-3 h-3" />
                           {new Date(log.timestamp).toLocaleString('pt-BR')}
                         </span>
+                        {sla && (
+                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                            {sla}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm font-semibold text-slate-900 mb-0.5">{log.action}</p>
                       <p className="text-sm text-slate-500 mb-2">{log.details}</p>
@@ -276,10 +334,8 @@ export default function LogsPage() {
                         <span className="flex items-center gap-1">
                           <User className="w-3 h-3" /> {log.user}
                         </span>
-                        {Object.keys(log.metadata).length > 0 && (
-                          <span className="font-mono bg-slate-100 px-2 py-0.5 rounded text-slate-500">
-                            {JSON.stringify(log.metadata)}
-                          </span>
+                        {chainStr && (
+                          <span className="text-[10px] text-slate-500 font-medium">{chainStr}</span>
                         )}
                       </div>
                     </div>
