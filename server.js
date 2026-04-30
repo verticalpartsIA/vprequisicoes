@@ -1,9 +1,9 @@
 /**
  * Entry point para Hostinger Node.js Apps.
  *
- * Sempre executa `next build` em produção antes de iniciar o servidor.
- * Isso garante que o .next no diretório live seja sempre fresh, evitando
- * o problema de chunks com hashes velhos (404 nos assets estáticos).
+ * O Hostinger roda o build command (`npm run build`) antes de iniciar este
+ * arquivo. O guard de BUILD_ID abaixo é um fallback para ambientes sem
+ * build command configurado — se .next/BUILD_ID não existir, builda aqui.
  */
 
 const fs = require('node:fs');
@@ -16,13 +16,14 @@ const isProd = process.env.NODE_ENV === 'production';
 const port = parseInt(process.env.PORT || '3000', 10);
 const hostname = process.env.HOSTNAME || '0.0.0.0';
 
+const buildIdPath = path.join(__dirname, '.next', 'BUILD_ID');
 const nextBin = path.join(__dirname, 'node_modules', 'next', 'dist', 'bin', 'next');
 
-// Sempre rebuildar em produção. Sem esse guard o Hostinger pode servir
-// um .next de deploy anterior (chunks com hashes velhos) enquanto o HTML
-// já referencia os hashes novos, causando 404 nos assets estáticos.
-if (isProd) {
-  console.log('[server.js] Produção: executando next build --webpack...');
+// Fallback: builda apenas se o build command do Hostinger não rodou.
+// Com "Comando de construção: npm run build" configurado no painel,
+// BUILD_ID já existe aqui e o servidor inicia imediatamente.
+if (isProd && !fs.existsSync(buildIdPath)) {
+  console.log('[server.js] .next/BUILD_ID ausente. Executando next build como fallback...');
   const built = spawnSync(process.execPath, [nextBin, 'build', '--webpack'], {
     cwd: __dirname,
     stdio: 'inherit',
