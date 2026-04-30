@@ -11,22 +11,23 @@ const nextConfig = {
 
   async headers() {
     return [
-      // Chunks e assets estáticos com hash no nome → cache longo (imutáveis)
+      // Páginas HTML — nunca cachear.
+      // Padrão exclui _next/ para não conflitar com assets estáticos.
+      // Causa do __next_error__: browser usava HTML antigo com chunk-hashes velhos.
       {
-        source: '/_next/static/:path*',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      // HTML de páginas e rotas de API → nunca cachear
-      // Garante que o browser sempre baixe o HTML mais recente após novo deploy,
-      // evitando que chunks antigos sejam referenciados (causa do __next_error__).
-      {
-        source: '/:path*',
+        source: '/((?!_next).*)',
         headers: [
           { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
+        ],
+      },
+      // Chunks e assets com hash de conteúdo → imutáveis (Next.js default em prod).
+      // Deve vir DEPOIS para sobrescrever o padrão acima caso haja sobreposição.
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
         ],
       },
     ];
