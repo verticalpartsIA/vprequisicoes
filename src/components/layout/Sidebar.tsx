@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
@@ -89,16 +90,15 @@ export function Sidebar({ user }: SidebarProps) {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
-      <div className="flex items-center gap-2.5 mb-8 shrink-0">
-        <div className="w-8 h-8 bg-brand rounded-lg flex items-center justify-center shadow-sm">
-          <span className="text-white font-black text-xs">VP</span>
-        </div>
-        <div>
-          <span className="text-slate-900 font-black text-sm tracking-tight">VPRequisições</span>
-          <p className="text-[9px] font-semibold text-slate-400 uppercase tracking-widest leading-none">
-            VerticalParts
-          </p>
-        </div>
+      <div className="mb-8 shrink-0">
+        <Image
+          src="/logo.png"
+          alt="VPRequisições — VerticalParts"
+          width={160}
+          height={48}
+          className="object-contain w-auto h-10"
+          priority
+        />
       </div>
 
       {/* Navegação */}

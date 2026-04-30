@@ -8,8 +8,8 @@ export const legacyTokens = {
       border: '#e2e8f0' // slate-200
     },
     brand: {
-      primary: '#f59e0b', // Amber 500 — mantido
-      dark: '#d97706'    // Amber 600
+      primary: '#EAB308', // Yellow 500 — amarelo vibrante
+      dark: '#CA8A04'    // Yellow 600
     },
     semantic: {
       success: '#22c55e',

@@ -96,6 +96,7 @@ export default function LogsPage() {
   const [moduleFilter, setModuleFilter] = useState<string>('all');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [ticketLogs, setTicketLogs] = useState<Record<string, LogEntry[]>>({});
+  const [ticketMeta, setTicketMeta] = useState<Record<string, { justificativa: string; title: string }>>({});
 
   const toggleExpand = async (log: LogEntry) => {
     if (!log.ticket_id) return;
@@ -106,21 +107,42 @@ export default function LogsPage() {
       return next;
     });
     if (ticketLogs[key]) return; // already loaded
-    const { data } = await supabase
-      .from('req_audit_logs')
-      .select('id, created_at, level, module, action, details, metadata, req_profiles:user_id(full_name, email)')
-      .eq('ticket_id', key)
-      .order('created_at', { ascending: true });
-    if (data) {
+    const [{ data: auditData }, { data: ticketData }] = await Promise.all([
+      supabase
+        .from('req_audit_logs')
+        .select('id, created_at, level, module, action, details, metadata, req_profiles:user_id(full_name, email)')
+        .eq('ticket_id', key)
+        .order('created_at', { ascending: true }),
+      supabase
+        .from('req_tickets')
+        .select('description, title, metadata')
+        .eq('id', key)
+        .single(),
+    ]);
+    if (auditData) {
       setTicketLogs(prev => ({
         ...prev,
-        [key]: data.map((r: any) => ({
+        [key]: auditData.map((r: any) => ({
           id: r.id, timestamp: r.created_at, level: r.level || 'info',
           module: r.module, action: r.action, details: r.details || '',
           user: r.req_profiles?.full_name ?? r.req_profiles?.email ?? 'Sistema',
           metadata: r.metadata || {}, ticket_id: key, ticket_number: null,
           ticket_created_at: null, ticket_received_at: null,
         }))
+      }));
+    }
+    if (ticketData) {
+      const just =
+        (ticketData as any).description ||
+        (ticketData as any).metadata?.justificativa ||
+        (ticketData as any).metadata?.details?.justificativa ||
+        '';
+      setTicketMeta(prev => ({
+        ...prev,
+        [key]: {
+          title: (ticketData as any).title || '',
+          justificativa: just,
+        }
       }));
     }
   };
@@ -342,6 +364,7 @@ export default function LogsPage() {
                   : null;
                 const isExpanded = log.ticket_id ? expanded.has(log.ticket_id) : false;
                 const timeline = log.ticket_id ? (ticketLogs[log.ticket_id] || []) : [];
+                const meta = log.ticket_id ? ticketMeta[log.ticket_id] : null;
                 const ticketModule = log.module;
                 const hasReceiving = !NO_RECEIVING_MODULES.has(ticketModule);
 
@@ -400,46 +423,62 @@ export default function LogsPage() {
 
                     {/* Timeline expandida */}
                     {isExpanded && log.ticket_id && (
-                      <div className="ml-12 mr-5 mb-5 bg-slate-50 border border-slate-200 rounded-xl p-5">
-                        <div className="flex items-center gap-2 mb-4">
-                          <GitBranch className="w-4 h-4 text-brand" />
-                          <span className="text-[10px] font-black text-brand uppercase tracking-widest">Timeline do Ticket</span>
-                          {!hasReceiving && (
-                            <span className="ml-2 text-[9px] bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-bold uppercase">
-                              Encerra em V4
-                            </span>
+                      <div className="ml-12 mr-5 mb-5 bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-5">
+
+                        {/* Justificativa / Observações */}
+                        {meta === undefined ? (
+                          <p className="text-xs text-slate-400 italic">Carregando dados do ticket...</p>
+                        ) : meta?.justificativa ? (
+                          <div className="bg-white border border-slate-200 rounded-lg px-4 py-3">
+                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+                              📋 Justificativa / Observações
+                            </p>
+                            <p className="text-sm text-slate-700">{meta.justificativa}</p>
+                          </div>
+                        ) : null}
+
+                        {/* Timeline */}
+                        <div>
+                          <div className="flex items-center gap-2 mb-4">
+                            <GitBranch className="w-4 h-4 text-brand" />
+                            <span className="text-[10px] font-black text-brand uppercase tracking-widest">Timeline do Workflow</span>
+                            {!hasReceiving && (
+                              <span className="ml-2 text-[9px] bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-bold uppercase">
+                                Encerra em V4
+                              </span>
+                            )}
+                          </div>
+                          {timeline.length === 0 ? (
+                            <p className="text-xs text-slate-400 italic">Carregando histórico...</p>
+                          ) : (
+                            <div className="space-y-2">
+                              {timeline
+                                .filter(t => hasReceiving || !['receiving','V5_RECEBIMENTO'].includes(t.module))
+                                .map((t, i, arr) => (
+                                  <div key={t.id} className="flex items-start gap-3">
+                                    <div className="flex flex-col items-center mt-0.5">
+                                      <div className="w-6 h-6 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-[9px] font-black text-brand shrink-0">
+                                        {i + 1}
+                                      </div>
+                                      {i < arr.length - 1 && <div className="w-px flex-1 bg-slate-200 mt-1 min-h-[12px]" />}
+                                    </div>
+                                    <div className="flex-1 pb-2">
+                                      <p className="text-[11px] text-slate-600 font-medium leading-snug">
+                                        <span className="text-slate-400">📅 {fmtDT(t.timestamp)}</span>
+                                        <span className="mx-1.5 text-slate-300">|</span>
+                                        <span className="font-bold text-slate-800">👤 {t.user}</span>
+                                        <span className="mx-1.5 text-slate-300">|</span>
+                                        <span className="font-bold text-brand">{t.action}</span>
+                                        {t.details && (
+                                          <span className="text-slate-500"> — {t.details}</span>
+                                        )}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
                           )}
                         </div>
-                        {timeline.length === 0 ? (
-                          <p className="text-xs text-slate-400 italic">Carregando histórico...</p>
-                        ) : (
-                          <div className="space-y-3">
-                            {timeline
-                              .filter(t => hasReceiving || !['receiving','V5_RECEBIMENTO'].includes(t.module))
-                              .map((t, i) => (
-                                <div key={t.id} className="flex items-start gap-3">
-                                  <div className="flex flex-col items-center">
-                                    <div className="w-6 h-6 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-[9px] font-black text-brand">
-                                      {i + 1}
-                                    </div>
-                                    {i < timeline.length - 1 && <div className="w-px h-4 bg-slate-200 mt-1" />}
-                                  </div>
-                                  <div className="flex-1 pb-1">
-                                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                                      <span className="text-[10px] text-slate-500 font-medium">{fmtDT(t.timestamp)}</span>
-                                      <span className="text-slate-300">|</span>
-                                      <span className="text-[10px] font-bold text-slate-700">{t.user}</span>
-                                      <span className="text-slate-300">|</span>
-                                      <span className="text-[10px] font-bold text-brand">{t.action}</span>
-                                    </div>
-                                    {t.details && (
-                                      <p className="text-[11px] text-slate-500">{t.details}</p>
-                                    )}
-                                  </div>
-                                </div>
-                              ))}
-                          </div>
-                        )}
                       </div>
                     )}
                   </div>
