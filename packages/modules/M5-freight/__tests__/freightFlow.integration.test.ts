@@ -17,7 +17,7 @@ describe('Freight Request Flow Integration (M5)', () => {
     const response = mockFreightRequestHandler(mockData);
 
     expect(response.status).toBe('success');
-    expect(response.data.ticket_number).toContain('M5-');
+    expect(response.data.ticket_number).toContain('FRT-2026-');
     expect(response.data.status).toBe('SUBMITTED');
     expect(response.data.details.destination).toBe('São Paulo, SP');
   });

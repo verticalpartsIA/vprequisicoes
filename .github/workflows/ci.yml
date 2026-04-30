@@ -42,7 +42,11 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci --legacy-peer-deps
-      - run: npm test
+      - name: Run tests
+        run: npm test
+        env:
+          NEXT_PUBLIC_SUPABASE_URL:      ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
 
   # ── 3. Build de validação (sem Docker) ────────────────────────────────────
   build-check:

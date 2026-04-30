@@ -7,13 +7,13 @@ describe('Approval Tiers Engine', () => {
     expect(getApprovalTier(1500)).toBe(1);
   });
 
-  it('deve retornar Tier 2 para valores entre R$ 1.500,01 e R$ 3.000,00', () => {
+  it('deve retornar Tier 2 para valores entre R$ 1.500,01 e R$ 3.500,00', () => {
     expect(getApprovalTier(1500.01)).toBe(2);
-    expect(getApprovalTier(3000)).toBe(2);
+    expect(getApprovalTier(3500)).toBe(2);
   });
 
-  it('deve retornar Tier 3 para valores acima de R$ 3.000,00', () => {
-    expect(getApprovalTier(3000.01)).toBe(3);
+  it('deve retornar Tier 3 para valores acima de R$ 3.500,00', () => {
+    expect(getApprovalTier(3500.01)).toBe(3);
     expect(getApprovalTier(100000)).toBe(3);
   });
 
