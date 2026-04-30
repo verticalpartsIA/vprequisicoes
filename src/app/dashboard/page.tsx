@@ -27,10 +27,19 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // IMPORTANTE: Usando realGet para falar direto com Supabase no modo estático
 import { realGet } from '@/lib/api/real-client';
 
+const EMPTY_DATA = {
+  kpis: { total_tickets: 0, tickets_pending_approval: 0, total_auction_savings: 0, avg_sla_hours: 0 },
+  savings_timeline: [],
+  module_distribution: [],
+  status_distribution: [],
+  top_suppliers: [],
+};
+
 function DashboardContent() {
   const searchParams = useSearchParams();
   const [data, setData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
     const period = searchParams.get('period') || '30d';
@@ -38,12 +47,14 @@ function DashboardContent() {
 
     const loadData = async () => {
       setIsLoading(true);
+      setHasError(false);
       try {
-        // Agora chamamos o Supabase diretamente, sem passar pela rota /api do Next
         const json = await realGet('/api/dashboard/summary', { period, module });
         setData(json);
       } catch (err) {
         console.error('[dashboard]', err);
+        setHasError(true);
+        setData(EMPTY_DATA);
       } finally {
         setIsLoading(false);
       }
@@ -51,7 +62,7 @@ function DashboardContent() {
     loadData();
   }, [searchParams]);
 
-  if (isLoading || !data) {
+  if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[70vh] space-y-6">
         <Loader2 className="w-12 h-12 text-brand animate-spin" />
@@ -59,6 +70,8 @@ function DashboardContent() {
       </div>
     );
   }
+
+  const display = data ?? EMPTY_DATA;
 
   return (
     <div className="container mx-auto py-10 space-y-10 animate-in fade-in duration-700">
@@ -70,26 +83,32 @@ function DashboardContent() {
         <DashboardFilters />
       </div>
 
+      {hasError && (
+        <div className="px-4 py-3 rounded-lg border border-amber-200 bg-amber-50 text-amber-700 text-xs font-bold uppercase tracking-widest">
+          Erro ao carregar dados — exibindo painel vazio. Tente recarregar.
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KPICard 
-          label="Total de Requisições" 
-          value={data.kpis.total_tickets} 
+        <KPICard
+          label="Total de Requisições"
+          value={display.kpis.total_tickets}
           icon={<FileText className="w-6 h-6 text-brand" />}
         />
-        <KPICard 
-          label="Aguardando Aprovação" 
-          value={data.kpis.tickets_pending_approval} 
+        <KPICard
+          label="Aguardando Aprovação"
+          value={display.kpis.tickets_pending_approval}
           icon={<Clock className="w-6 h-6 text-amber-500" />}
           inverse
         />
-        <KPICard 
+        <KPICard
           label="Total Gasto (Cotações)"
-          value={Number(data.kpis.total_auction_savings || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+          value={Number(display.kpis.total_auction_savings || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
           icon={<DollarSign className="w-6 h-6 text-brand-success" />}
         />
-        <KPICard 
-          label="SLA Médio de Aprovação" 
-          value={data.kpis.avg_sla_hours} 
+        <KPICard
+          label="SLA Médio de Aprovação"
+          value={display.kpis.avg_sla_hours}
           suffix="horas"
           icon={<TrendingUp className="w-6 h-6 text-brand" />}
           inverse
@@ -105,7 +124,7 @@ function DashboardContent() {
           </CardHeader>
           <CardContent className="px-0">
              <div className="h-[250px] w-full mt-2">
-                <LineChartNative data={data.savings_timeline} color="#10b981" />
+                <LineChartNative data={display.savings_timeline} color="#10b981" />
              </div>
           </CardContent>
         </Card>
@@ -117,7 +136,7 @@ function DashboardContent() {
             </CardTitle>
           </CardHeader>
           <CardContent className="px-0 flex justify-center">
-             <DonutChartNative data={data.module_distribution} />
+             <DonutChartNative data={display.module_distribution} />
           </CardContent>
         </Card>
       </div>
@@ -130,7 +149,7 @@ function DashboardContent() {
                </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
-               <BarChartNative data={data.status_distribution} color="#3b82f6" />
+               <BarChartNative data={display.status_distribution} color="#3b82f6" />
             </CardContent>
          </Card>
 
@@ -141,7 +160,7 @@ function DashboardContent() {
                </CardTitle>
             </CardHeader>
             <CardContent className="px-0">
-               <TopSuppliersTable suppliers={data.top_suppliers} />
+               <TopSuppliersTable suppliers={display.top_suppliers} />
             </CardContent>
          </Card>
       </div>

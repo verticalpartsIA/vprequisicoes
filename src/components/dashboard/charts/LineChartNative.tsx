@@ -14,12 +14,25 @@ interface LineChartNativeProps {
 }
 
 export const LineChartNative = ({ data, color = '#3b82f6', height = 150 }: LineChartNativeProps) => {
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full text-slate-500 text-xs font-bold uppercase tracking-widest opacity-40">
+        Sem dados no período
+      </div>
+    );
+  }
+
   const chartWidth = 600;
   const padding = 20;
   const maxValue = Math.max(...data.map(d => d.value), 1);
-  
+
+  const getX = (i: number) =>
+    data.length === 1
+      ? chartWidth / 2
+      : (i / (data.length - 1)) * (chartWidth - padding * 2) + padding;
+
   const points = data.map((d, i) => {
-    const x = (i / (data.length - 1)) * (chartWidth - padding * 2) + padding;
+    const x = getX(i);
     const y = height - ((d.value / maxValue) * (height - padding * 2) + padding);
     return `${x},${y}`;
   }).join(' ');
@@ -69,7 +82,7 @@ export const LineChartNative = ({ data, color = '#3b82f6', height = 150 }: LineC
 
         {/* Pontos de dados */}
         {data.map((d, i) => {
-          const x = (i / (data.length - 1)) * (chartWidth - padding * 2) + padding;
+          const x = getX(i);
           const y = height - ((d.value / maxValue) * (height - padding * 2) + padding);
           return (
             <circle 

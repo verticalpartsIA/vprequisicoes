@@ -15,6 +15,14 @@ interface DonutChartNativeProps {
 
 export const DonutChartNative = ({ data, size = 160 }: DonutChartNativeProps) => {
   const total = data.reduce((acc, d) => acc + d.value, 0);
+
+  if (!data || data.length === 0 || total === 0) {
+    return (
+      <div className="flex items-center justify-center text-slate-500 text-xs font-bold uppercase tracking-widest opacity-40" style={{ height: size }}>
+        Sem dados
+      </div>
+    );
+  }
   const radius = 60;
   const stroke = 18;
   const normalizedRadius = radius - stroke / 2;
