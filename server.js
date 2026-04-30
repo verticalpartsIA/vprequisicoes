@@ -36,7 +36,9 @@ if (isProd && !fs.existsSync(buildIdPath)) {
 }
 
 const next = require('next');
-const app = next({ dev: !isProd, hostname, port });
+// dir: __dirname garante que o Next.js encontre .next/ relativo ao server.js,
+// independente do diretório de trabalho do processo no Hostinger.
+const app = next({ dev: !isProd, hostname, port, dir: __dirname });
 const handle = app.getRequestHandler();
 
 app.prepare()
