@@ -41,7 +41,7 @@ export const TopSuppliersTable = ({ suppliers }: TopSuppliersTableProps) => {
               <td className="py-4 text-right pr-4">
                 <div className="flex items-center justify-end gap-1 text-sm font-mono font-bold text-emerald-700">
                   <DollarSign className="w-3 h-3" />
-                  {s.total_spent.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
+                  {(s.total_spent ?? 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}
                 </div>
               </td>
             </tr>
