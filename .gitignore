@@ -23,3 +23,5 @@ yarn-error.log*
 playwright-report/
 test-results/
 playwright.env.json
+.claude/
+.continue/
