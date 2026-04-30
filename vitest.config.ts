@@ -25,6 +25,7 @@ export default defineConfig({
       'dist',
       'tests/e2e/**',
       'packages/core/db/__tests__/supabase-flow*',
+      'packages/core/db/__tests__/m1-through-release*',
     ],
 
     setupFiles: ['./vitest.setup.ts'],
