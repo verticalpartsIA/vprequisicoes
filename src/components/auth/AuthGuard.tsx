@@ -53,7 +53,7 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
     checkAuth();
     return () => clearTimeout(timer);
-  }, [pathname, router, searchParams, loading]);
+  }, [pathname, router, searchParams]);
 
   if (error) {
     return (
