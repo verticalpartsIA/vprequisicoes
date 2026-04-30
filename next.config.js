@@ -6,9 +6,31 @@ const nextConfig = {
   ...(process.env.NEXT_OUTPUT_STANDALONE === '1' ? { output: 'standalone' } : {}),
 
   typescript: {
-    ignoreBuildErrors: true,  // ✅ Mantém build mesmo com avisos de tipos
+    ignoreBuildErrors: true,
   },
-  // O ESLint deve ser configurado via .eslintrc.json ou npx next lint
+
+  async headers() {
+    return [
+      // Chunks e assets estáticos com hash no nome → cache longo (imutáveis)
+      {
+        source: '/_next/static/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        ],
+      },
+      // HTML de páginas e rotas de API → nunca cachear
+      // Garante que o browser sempre baixe o HTML mais recente após novo deploy,
+      // evitando que chunks antigos sejam referenciados (causa do __next_error__).
+      {
+        source: '/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-cache, no-store, must-revalidate' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
+        ],
+      },
+    ];
+  },
 };
 
 module.exports = nextConfig;
