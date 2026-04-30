@@ -161,7 +161,8 @@ export async function realGet(path: string, params?: Record<string, string>): Pr
 
   // 2. Listagem de Tickets (View)
   const isSpecialList = path === '/api/approval/tickets' || path === '/api/purchasing/tickets' || path === '/api/receiving/tickets';
-  let query = supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let query: any = (supabase as any)
     .from(isSpecialList ? 'req_tickets' : 'req_tickets_view')
     .select('*')
     .order('created_at', { ascending: false });
@@ -300,7 +301,7 @@ export async function realPost(path: string, body: any): Promise<any> {
         .from('req_tickets')
         .update({
           metadata: {
-            ...((await supabase.from('req_tickets').select('metadata').eq('id', ticketId).single()).data?.metadata || {}),
+            ...((await supabase.from('req_tickets').select('metadata').eq('id', ticketId).single()).data?.metadata as Record<string, unknown> ?? {}),
             draft: body
           }
         })
@@ -388,7 +389,7 @@ export async function realPost(path: string, body: any): Promise<any> {
           status: 'PENDING_APPROVAL',
           quoted_at: new Date().toISOString(),
           metadata: {
-            ...(existingTicket?.metadata || {}),
+            ...(existingTicket?.metadata as Record<string, unknown> ?? {}),
             quotation: {
               ...body,
               quotation_id: quotation.id,
@@ -423,7 +424,8 @@ export async function realPost(path: string, body: any): Promise<any> {
     const { data: ticket } = await supabase.from('req_tickets').select('*').eq('id', ticketId).single();
     if (!ticket) throw new Error('Ticket não encontrado');
 
-    const totalValue = Number(ticket.metadata?.quotation?.total_amount || ticket.metadata?.total_amount || 0);
+    const meta = ticket.metadata as any;
+    const totalValue = Number(meta?.quotation?.total_amount || meta?.total_amount || 0);
     
     let nextStatus: StatusType = 'APPROVED';
     let actionLabel = 'Aprovação Concedida';
