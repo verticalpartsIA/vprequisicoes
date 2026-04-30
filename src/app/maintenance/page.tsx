@@ -3,7 +3,6 @@
 import React from 'react';
 import { Wrench, ShieldCheck, Zap } from 'lucide-react';
 import { MaintenanceRequestForm } from '@/components/forms/M4/MaintenanceRequestForm';
-import { PageFooterTutorial } from "@/components/layout/PageFooterTutorial";
 
 export default function MaintenancePage() {
   return (
@@ -52,14 +51,6 @@ export default function MaintenancePage() {
 
       <MaintenanceRequestForm />
 
-      <PageFooterTutorial
-        steps={[
-          "Selecione o ativo",
-          "Descreva o problema",
-          "Verifique se há contrato",
-          "Confirme manutenção"
-        ]}
-      />
 
       <div className="mt-16 border-t border-slate-200 pt-8 text-center pb-16">
         <Wrench className="w-8 h-8 text-slate-300 mx-auto mb-2" />

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { PackageSearch, ShieldCheck, Clock, ArrowRight } from 'lucide-react';
 import { RentalRequestForm } from '@/components/forms/M6/RentalRequestForm';
-import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 import { realGet } from '@/lib/api/real-client';
 
 export default function RentalPage() {
@@ -14,24 +13,6 @@ export default function RentalPage() {
       .then((res: any) => setActiveTickets(res.data?.length || 0))
       .catch(() => setActiveTickets(0));
   }, []);
-
-  const tutorialSteps = [
-    {
-      title: "Especifique o Equipamento",
-      description: "Informe o tipo, nome técnico e quantidade do equipamento que precisa locar.",
-      icon: <PackageSearch className="w-5 h-5 text-brand" />
-    },
-    {
-      title: "Defina o Período",
-      description: "Informe as datas de início e devolução. O sistema calcula automaticamente os dias de locação.",
-      icon: <Clock className="w-5 h-5 text-brand" />
-    },
-    {
-      title: "Fluxo de Aprovação",
-      description: "Após envio, a requisição segue: Cotação → Aprovação → Compra → Check-in → Devolução → Encerrado.",
-      icon: <ArrowRight className="w-5 h-5 text-brand" />
-    }
-  ];
 
   return (
     <div className="container mx-auto py-10 px-4 max-w-6xl animate-in fade-in duration-700">
@@ -88,7 +69,6 @@ export default function RentalPage() {
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">VerticalParts • Equipment Rental Engine</p>
       </div>
 
-      <PageFooterTutorial steps={tutorialSteps} />
     </div>
   );
 }

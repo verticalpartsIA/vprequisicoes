@@ -3,7 +3,6 @@
 import React from 'react';
 import { Plane, Info, ShieldCheck } from 'lucide-react';
 import { TravelRequestForm } from '@/components/forms/M2/TravelRequestForm';
-import { PageFooterTutorial } from "@/components/layout/PageFooterTutorial";
 
 export default function TravelPage() {
   return (
@@ -48,14 +47,6 @@ export default function TravelPage() {
 
       <TravelRequestForm />
 
-      <PageFooterTutorial
-        steps={[
-          "Informe origem/destino",
-          "Escolha as datas",
-          "Defina transporte/hospedagem",
-          "Solicite reserva"
-        ]}
-      />
 
       <div className="mt-16 border-t border-slate-200 pt-8 text-center pb-16">
         <Plane className="w-8 h-8 text-slate-300 mx-auto mb-2" />

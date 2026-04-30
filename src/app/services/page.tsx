@@ -3,27 +3,8 @@
 import React from 'react';
 import { Briefcase, ShieldCheck, ClipboardCheck } from 'lucide-react';
 import { ServiceRequestForm } from '@/components/forms/M3/ServiceRequestForm';
-import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 
 export default function ServicesPage() {
-  const tutorialSteps = [
-    {
-      title: "Escopo Técnico",
-      content: "Seja detalhado na descrição do serviço. Quanto mais informação, melhor será a cotação.",
-      targetId: "m3-escopo"
-    },
-    {
-      title: "Medição e Pagamento",
-      content: "Para serviços longos, utilize o pagamento por etapas (milestones) para maior controle financeiro.",
-      targetId: "m3-pagamento"
-    },
-    {
-      title: "Documentação de Terceiros",
-      content: "Nossa equipe jurídica validará os documentos do fornecedor sugerido automaticamente.",
-      targetId: "m3-fornecedor"
-    }
-  ];
-
   return (
     <div className="container mx-auto py-10 px-4 max-w-6xl animate-in fade-in duration-700">
 
@@ -75,7 +56,6 @@ export default function ServicesPage() {
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">VerticalParts • Labor Procurement Engine</p>
       </div>
 
-      <PageFooterTutorial steps={tutorialSteps} />
     </div>
   );
 }

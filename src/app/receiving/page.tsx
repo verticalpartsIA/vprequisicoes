@@ -7,7 +7,6 @@ import { Truck, Search, ArrowRight, Package, ShieldCheck, MapPin, Calendar } fro
 import Link from 'next/link';
 import { realGet as realApiClient } from '@/lib/api/real-client';
 import { normalizeTicket } from '@/lib/utils/normalize-ticket';
-import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 
 export default function ReceivingListPage() {
   const [tickets, setTickets] = useState<any[]>([]);
@@ -163,25 +162,6 @@ export default function ReceivingListPage() {
         </CardContent>
       </Card>
 
-      <PageFooterTutorial
-        steps={[
-          {
-            title: "Fila de Recebimento",
-            description: "Aqui você visualiza todas as OCs que já foram emitidas e aguardam mercadoria ou conclusão de serviço.",
-            icon: <Truck className="w-5 h-5 text-brand" />
-          },
-          {
-            title: "Físico vs Digital",
-            description: "Itens 'Físicos' exigem conferência de almoxarifado. Itens 'Digitais' são serviços que exigem ateste pelo solicitante.",
-            icon: <ShieldCheck className="w-5 h-5 text-sky-600" />
-          },
-          {
-            title: "Localizar OC",
-            description: "Use o botão 'Localizar OC' para buscar uma OC específica por número ou fornecedor.",
-            icon: <Search className="w-5 h-5 text-slate-400" />
-          }
-        ]}
-      />
     </div>
   );
 }

@@ -3,27 +3,8 @@
 import React from 'react';
 import { Truck, ShieldCheck, Clock } from 'lucide-react';
 import { FreightRequestForm } from "@/components/forms/M5/FreightRequestForm";
-import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 
 export default function FreightPage() {
-  const tutorialSteps = [
-    {
-      title: "Rota de Transporte",
-      content: "Defina se o VerticalParts deve 'Trazer' (Inbound) ou 'Levar' (Outbound) a carga.",
-      targetId: "m5-rota"
-    },
-    {
-      title: "Cotação Automática",
-      content: "Após o envio, o sistema buscará automaticamente as melhores taxas entre transportadoras parceiras.",
-      targetId: "m5-cotacao"
-    },
-    {
-      title: "Prazos de Entrega",
-      content: "Fique atento à data desejada. Coletas emergenciais podem ter custos adicionais.",
-      targetId: "m5-programacao"
-    }
-  ];
-
   return (
     <div className="container mx-auto py-10 px-4 max-w-6xl animate-in fade-in duration-700">
 
@@ -75,7 +56,6 @@ export default function FreightPage() {
         <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">VerticalParts • Logistics Engine</p>
       </div>
 
-      <PageFooterTutorial steps={tutorialSteps} />
     </div>
   );
 }

@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ShoppingCart, Filter, ArrowRight, Clock } from 'lucide-react';
-import { PageFooterTutorial } from '@/components/layout/PageFooterTutorial';
 import Link from 'next/link';
 import { realGet as realApiClient } from '@/lib/api/real-client';
 import { normalizeTicket } from '@/lib/utils/normalize-ticket';
@@ -156,30 +155,33 @@ export default function PurchasingListPage() {
         </CardContent>
       </Card>
 
-      {/* KPI cards */}
+      {/* KPI cards — dados reais */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Lead Time Médio</h4>
-          <p className="text-2xl font-bold text-slate-900">4.2 Dias</p>
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Total de Compras Realizadas</h4>
+          <p className="text-2xl font-bold text-slate-900">
+            {tickets.filter(t => ['RECEIVING','RELEASED','IN_USE'].includes(t.status)).length > 0
+              ? `${tickets.filter(t => ['RECEIVING','RELEASED','IN_USE'].includes(t.status)).length} OCs`
+              : <span className="text-slate-400 text-base">Nenhuma ainda</span>}
+          </p>
         </div>
         <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Economia Acumulada (Mês)</h4>
-          <p className="text-2xl font-bold text-emerald-600">R$ 12.450,80</p>
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Valor Total em Aprovação</h4>
+          <p className="text-2xl font-bold text-emerald-600">
+            {tickets.length > 0
+              ? tickets.reduce((s, t) => s + Number(t._totalAmount || 0), 0)
+                  .toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+              : <span className="text-slate-400 text-base">R$ 0,00</span>}
+          </p>
         </div>
         <div className="p-5 bg-white rounded-xl border border-slate-200 shadow-sm">
-          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">OCs Emitidas (Hoje)</h4>
-          <p className="text-2xl font-bold text-brand">14 Pedidos</p>
+          <h4 className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1">Aguardando Compra</h4>
+          <p className="text-2xl font-bold text-brand">
+            {tickets.length} {tickets.length === 1 ? 'Pedido' : 'Pedidos'}
+          </p>
         </div>
       </div>
 
-      <PageFooterTutorial
-        steps={[
-          "Selecione um ticket aprovado",
-          "Revise as cotações vencedoras",
-          "Confirme o fornecedor vencedor da cotação",
-          "Gere a Ordem de Compra (OC)"
-        ]}
-      />
     </div>
   );
 }

@@ -13,7 +13,10 @@ import {
   XCircle,
   AlertCircle,
   Info,
-  Filter
+  Filter,
+  ChevronDown,
+  ChevronRight,
+  GitBranch
 } from 'lucide-react';
 import { supabase } from '@/lib/supabase/client';
 
@@ -78,12 +81,49 @@ const MODULES: { value: string; label: string }[] = [
 ];
 const MODULE_LABEL = Object.fromEntries(MODULES.map(m => [m.value, m.label])) as Record<string, string>;
 
+// Modules that end at V4 (no receiving step)
+const NO_RECEIVING_MODULES = new Set(['M2_VIAGENS', 'M3_SERVICOS', 'M6_LOCACAO']);
+
+function fmtDT(iso: string) {
+  return new Date(iso).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
 export default function LogsPage() {
   const [logs, setLogs] = useState<LogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [levelFilter, setLevelFilter] = useState<string>('all');
   const [moduleFilter, setModuleFilter] = useState<string>('all');
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [ticketLogs, setTicketLogs] = useState<Record<string, LogEntry[]>>({});
+
+  const toggleExpand = async (log: LogEntry) => {
+    if (!log.ticket_id) return;
+    const key = log.ticket_id;
+    setExpanded(prev => {
+      const next = new Set(prev);
+      next.has(key) ? next.delete(key) : next.add(key);
+      return next;
+    });
+    if (ticketLogs[key]) return; // already loaded
+    const { data } = await supabase
+      .from('req_audit_logs')
+      .select('id, created_at, level, module, action, details, metadata, req_profiles:user_id(full_name, email)')
+      .eq('ticket_id', key)
+      .order('created_at', { ascending: true });
+    if (data) {
+      setTicketLogs(prev => ({
+        ...prev,
+        [key]: data.map((r: any) => ({
+          id: r.id, timestamp: r.created_at, level: r.level || 'info',
+          module: r.module, action: r.action, details: r.details || '',
+          user: r.req_profiles?.full_name ?? r.req_profiles?.email ?? 'Sistema',
+          metadata: r.metadata || {}, ticket_id: key, ticket_number: null,
+          ticket_created_at: null, ticket_received_at: null,
+        }))
+      }));
+    }
+  };
 
   useEffect(() => {
     async function loadLogs() {
@@ -300,45 +340,108 @@ export default function LogsPage() {
                 const chainStr = chain
                   ? `Requisitor: ${chain.requisitor} | Cotador: ${chain.cotador} | Aprovador: ${chain.aprovador} | Comprador: ${chain.comprador} | Almoxarife: ${chain.almoxarife}`
                   : null;
+                const isExpanded = log.ticket_id ? expanded.has(log.ticket_id) : false;
+                const timeline = log.ticket_id ? (ticketLogs[log.ticket_id] || []) : [];
+                const ticketModule = log.module;
+                const hasReceiving = !NO_RECEIVING_MODULES.has(ticketModule);
+
                 return (
-                  <div key={log.id} className={`flex items-start gap-4 p-5 transition-colors ${cfg.row}`}>
-                    <div className="flex-shrink-0 mt-0.5">{cfg.icon}</div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 mb-1">
-                        <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}>
-                          {LEVEL_LABELS[log.level]}
-                        </span>
-                        <span className="text-xs font-semibold text-slate-700">{MODULE_LABEL[log.module] ?? log.module}</span>
-                        {log.ticket_number && (
-                          <>
-                            <span className="text-slate-300">•</span>
-                            <span className="text-[10px] font-bold text-brand bg-brand/5 border border-brand/20 px-2 py-0.5 rounded font-mono">
-                              {log.ticket_number}
-                            </span>
-                          </>
-                        )}
-                        <span className="text-slate-300">•</span>
-                        <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
-                          <Clock className="w-3 h-3" />
-                          {new Date(log.timestamp).toLocaleString('pt-BR')}
-                        </span>
-                        {sla && (
-                          <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
-                            {sla}
+                  <div key={log.id} className="border-b border-slate-100 last:border-0">
+                    {/* Row principal */}
+                    <div
+                      className={`flex items-start gap-4 p-5 transition-colors cursor-pointer ${cfg.row} ${log.ticket_id ? 'select-none' : ''}`}
+                      onClick={() => toggleExpand(log)}
+                    >
+                      <div className="flex-shrink-0 mt-0.5">{cfg.icon}</div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-1">
+                          <span className={`px-2 py-0.5 rounded border text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}>
+                            {LEVEL_LABELS[log.level]}
                           </span>
-                        )}
+                          <span className="text-xs font-semibold text-slate-700">{MODULE_LABEL[log.module] ?? log.module}</span>
+                          {log.ticket_number && (
+                            <>
+                              <span className="text-slate-300">•</span>
+                              <span className="text-[10px] font-bold text-brand bg-brand/5 border border-brand/20 px-2 py-0.5 rounded font-mono">
+                                {log.ticket_number}
+                              </span>
+                            </>
+                          )}
+                          <span className="text-slate-300">•</span>
+                          <span className="flex items-center gap-1 text-[10px] text-slate-400 font-medium">
+                            <Clock className="w-3 h-3" />
+                            {new Date(log.timestamp).toLocaleString('pt-BR')}
+                          </span>
+                          {sla && (
+                            <span className="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded">
+                              {sla}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-semibold text-slate-900 mb-0.5">{log.action}</p>
+                        <p className="text-sm text-slate-500 mb-2">{log.details}</p>
+                        <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-400">
+                          <span className="flex items-center gap-1">
+                            <User className="w-3 h-3" /> {log.user}
+                          </span>
+                          {chainStr && (
+                            <span className="text-[10px] text-slate-500 font-medium">{chainStr}</span>
+                          )}
+                        </div>
                       </div>
-                      <p className="text-sm font-semibold text-slate-900 mb-0.5">{log.action}</p>
-                      <p className="text-sm text-slate-500 mb-2">{log.details}</p>
-                      <div className="flex flex-wrap items-center gap-4 text-[10px] text-slate-400">
-                        <span className="flex items-center gap-1">
-                          <User className="w-3 h-3" /> {log.user}
-                        </span>
-                        {chainStr && (
-                          <span className="text-[10px] text-slate-500 font-medium">{chainStr}</span>
-                        )}
-                      </div>
+                      {log.ticket_id && (
+                        <div className="flex-shrink-0 mt-1 text-slate-400">
+                          {isExpanded
+                            ? <ChevronDown className="w-4 h-4" />
+                            : <ChevronRight className="w-4 h-4" />}
+                        </div>
+                      )}
                     </div>
+
+                    {/* Timeline expandida */}
+                    {isExpanded && log.ticket_id && (
+                      <div className="ml-12 mr-5 mb-5 bg-slate-50 border border-slate-200 rounded-xl p-5">
+                        <div className="flex items-center gap-2 mb-4">
+                          <GitBranch className="w-4 h-4 text-brand" />
+                          <span className="text-[10px] font-black text-brand uppercase tracking-widest">Timeline do Ticket</span>
+                          {!hasReceiving && (
+                            <span className="ml-2 text-[9px] bg-sky-50 border border-sky-200 text-sky-700 px-2 py-0.5 rounded font-bold uppercase">
+                              Encerra em V4
+                            </span>
+                          )}
+                        </div>
+                        {timeline.length === 0 ? (
+                          <p className="text-xs text-slate-400 italic">Carregando histórico...</p>
+                        ) : (
+                          <div className="space-y-3">
+                            {timeline
+                              .filter(t => hasReceiving || !['receiving','V5_RECEBIMENTO'].includes(t.module))
+                              .map((t, i) => (
+                                <div key={t.id} className="flex items-start gap-3">
+                                  <div className="flex flex-col items-center">
+                                    <div className="w-6 h-6 rounded-full bg-brand/10 border border-brand/20 flex items-center justify-center text-[9px] font-black text-brand">
+                                      {i + 1}
+                                    </div>
+                                    {i < timeline.length - 1 && <div className="w-px h-4 bg-slate-200 mt-1" />}
+                                  </div>
+                                  <div className="flex-1 pb-1">
+                                    <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                                      <span className="text-[10px] text-slate-500 font-medium">{fmtDT(t.timestamp)}</span>
+                                      <span className="text-slate-300">|</span>
+                                      <span className="text-[10px] font-bold text-slate-700">{t.user}</span>
+                                      <span className="text-slate-300">|</span>
+                                      <span className="text-[10px] font-bold text-brand">{t.action}</span>
+                                    </div>
+                                    {t.details && (
+                                      <p className="text-[11px] text-slate-500">{t.details}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
